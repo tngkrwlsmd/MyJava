@@ -1,4 +1,4 @@
-package java6.java6_3s;
+package java6_3s;
 import java.util.*;
 
 class LongWordCount {

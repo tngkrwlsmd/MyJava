@@ -1,4 +1,3 @@
-package java6;
 import java.util.StringTokenizer;
 
 class java6_3 {

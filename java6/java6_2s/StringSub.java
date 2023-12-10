@@ -1,4 +1,4 @@
-package java6.java6_2s;
+package java6_2s;
 
 class StringSub {
     public static void main(String[] args) {
