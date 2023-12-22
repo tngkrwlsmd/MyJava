@@ -1,7 +1,7 @@
 package java2.java2_4;
 import java.util.Scanner;
 
-class java2_3 {
+class java2_4 {
     public static void main(String[] args) {
         Scanner scanner = new Scanner(System.in);
         System.out.print("정수를 3개 입력 >> ");
