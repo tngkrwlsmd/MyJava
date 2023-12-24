@@ -14,7 +14,6 @@ class java2_6 {
       if (digit % 3 == 0) System.out.print("짝");
       temp /= 10;
     }
-
     scanner.close();
   }  
 }

@@ -14,7 +14,6 @@ class java2_3 {
       else System.out.println(wons[i] + "원 " + money/won[i] + "개");
       money %= won[i];
     }
-
     scanner.close();
   }
 }

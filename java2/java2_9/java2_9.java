@@ -13,7 +13,6 @@ class java2_9 {
 
     if (inCircle(ox, oy, x, y, r)) System.out.println("점 (" + x + "," + y + ")는 원 안에 있다.");
     else System.out.println("점 (" + x + "," + y + ")는 원 안에 없다.");
-
     scanner.close();
   }
 

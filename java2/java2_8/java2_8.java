@@ -18,7 +18,6 @@ class java2_8 {
       if (inRect(x2, y2, 100, 100, 200, 200)) System.out.println("충돌합니다.");
       else System.out.println("완전히 포함하거나 충돌하지 않습니다.");
     }
-
     scanner.close();
   }
 
