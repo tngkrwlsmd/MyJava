@@ -8,11 +8,11 @@ class java2_6 {
     int num = scanner.nextInt();
     System.out.print("박수");
 
-    int temp = num;
-    while (temp > 0) {
-      int digit = temp % 10;
-      if (digit % 3 == 0) System.out.print("짝");
-      temp /= 10;
+    int n = num;
+    while (n > 0) {
+      int digit = n % 10;
+      if (digit != 0 && digit % 3 == 0) System.out.print("짝");
+      n /= 10;
     }
     scanner.close();
   }  
