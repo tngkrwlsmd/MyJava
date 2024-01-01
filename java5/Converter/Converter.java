@@ -20,15 +20,29 @@ abstract class Converter {
 class Won2Dollar extends Converter {
   private double val;
   Won2Dollar(double val) { this.val = val; }
-  protected double convert(double src) { return src/1200; }
-  protected double getVal() { return val; }
+  protected double convert(double src) { return src / val; }
   protected String getSrcString() { return "원"; }
   protected String getDestString() { return "달러"; }
 }
 
-class ConverterEx {
+class ConverterEx1 {
   public static void main(String args[]) {
    Won2Dollar toDollar = new Won2Dollar(1200); // 1달러는 1200원
    toDollar.run();
+   }
 }
+
+class Km2Mile extends Converter {
+   private double val;
+   Km2Mile(double val){ this.val = val; }
+   protected double convert(double src) { return src / val; }
+   protected String getSrcString() { return "Km"; }
+   protected String getDestString() { return "mile"; }
+}
+
+class ConverterEx2 {
+   public static void main(String[] args) {
+      Km2Mile toMile = new Km2Mile(1.6); // 1마일은 1.6km
+      toMile.run();
+   }
 }
