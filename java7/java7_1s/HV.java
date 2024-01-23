@@ -2,8 +2,7 @@ package java7_1s;
 import java.util.*;
 
 class HV {
-    public static Vector<String>
-    hashToVector(HashMap<String, String> h) {
+    public static Vector<String> hashToVector(HashMap<String, String> h) {
         Vector<String> v = new Vector<String>();
         Set<String> keys = h.keySet();
         Iterator<String> it = keys.iterator();
