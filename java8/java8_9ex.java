@@ -3,7 +3,7 @@ import java.io.*;
 
 class java8_9ex {
   public static void main(String[] args) {
-    File src = new File("C:\\Windows\\Web\\Wallpaper\\Theme1\\img1.jpg");
+    File src = new File("C:/Windows/Web/Wallpaper/Theme1/img1.jpg");
     File dest = new File("copying.jpg");
     int c;
     try {

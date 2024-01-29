@@ -3,7 +3,7 @@ import java.io.*;
 
 class java8_8ex {
   public static void main(String[] args) {
-    File src = new File("c:\\windows\\system.ini");
+    File src = new File("c:/windows/system.ini");
     File dest = new File("system.txt");
     int c;
     try {

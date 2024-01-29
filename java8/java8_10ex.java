@@ -3,8 +3,8 @@ import java.io.*;
 
 class java8_10ex {
   public static void main(String[] args) {
-    File src = new File("C:\\Windows\\Web\\Wallpaper\\Theme1\\img1.jpg");
-    File dest = new File("C:\\java\\java8\\desert.jpg");
+    File src = new File("C:/Windows/Web/Wallpaper/Theme1/img1.jpg");
+    File dest = new File("C:/java/java8/desert.jpg");
     try {
       FileInputStream fi = new FileInputStream(src);
       FileOutputStream fo = new FileOutputStream(dest);

@@ -15,7 +15,7 @@ class java8_7ex {
   }
 
   public static void main(String[] args) {
-    File f1 = new File("C:\\windows\\system.ini");
+    File f1 = new File("C:/windows/system.ini");
     System.out.println(f1.getPath() + ", " + f1.getParent() + ", " + f1.getName());
     String res = "";
     if (f1.isFile()) res = "파일";
@@ -25,8 +25,8 @@ class java8_7ex {
     
     File f2 = new File("java_sample");
     if(!f2.exists()) f2.mkdirs(); //존재하지 않으면 디렉토리 생성
-    listDirecory(new File("c:\\java"));
-    f2.renameTo(new File("c:\\java\\javasample"));
-    listDirecory(new File("c\\java"));
+    listDirecory(new File("c:/java"));
+    f2.renameTo(new File("c:/java/javasample"));
+    listDirecory(new File("c/java"));
   }
 }
