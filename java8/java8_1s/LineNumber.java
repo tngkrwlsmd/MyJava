@@ -6,9 +6,8 @@ class LineNumber {
   public static void main(String[] args) {
     BufferedReader br = null;
     Scanner sin = new Scanner(System.in);
-    String src;
     System.out.print("자바 소스 파일 이름을 입력하세요 >> ");
-    src = sin.nextLine();
+    String src = sin.nextLine();
     try {
       br = new BufferedReader(new FileReader(src));
       String line;
