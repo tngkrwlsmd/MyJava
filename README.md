@@ -16,7 +16,7 @@ java와 관계 없이, 이 코드는 github를 통해 관리되므로, git에 �
 
 만약 두 브랜치를 병합하고 싶다면, __git merge__ 명령어를 통해 가능함.
 
-# 3. github push
+# 3. push
 
 기본 브랜치 이름을 master -> main으로 변경하라는 말이 있을 수 있는데, 그때는
 
@@ -32,9 +32,9 @@ java와 관계 없이, 이 코드는 github를 통해 관리되므로, git에 �
 
 라고 입력하여, __git push origin main__ 이라고 간결하게 작성할 수 있다.
 
-# 4. github pull
+# 4. pull
 
-> git pull origin main
+> git pull origin main //혹은 master
 
 push를 하기 전에, 항상 작성하도록 하자. 원격저장소와 로컬저장소에 있는 내용이 다르면, push가 불가능하다.
 
