@@ -21,7 +21,7 @@ public class TextAreaEx extends JFrame {
       public void actionPerformed(ActionEvent e) {
         JTextField t = (JTextField)e.getSource();
         ta.append(t.getText() + "\n"); //텍스트 필드의 문자열을 텍스트 영역 창에 추가
-        t.setText("");
+        t.setText(""); //텍스트 필드 초기화
       }
     });
 
