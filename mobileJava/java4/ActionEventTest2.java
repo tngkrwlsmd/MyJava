@@ -36,24 +36,31 @@ class MyFrame2 extends JFrame {
 
     private class MyGame implements ActionListener {
         public void actionPerformed(ActionEvent e) {
-            int num = (int)(Math.random() * 3); //컴퓨터 선택
-            if (e.getSource() == button1) {
-                if (num == 0) label2.setText("인간: 0 컴퓨터: 0 무승부");
-                else if (num == 1) label2.setText("인간: 0 컴퓨터 1 컴퓨터 승리");
-                else if (num == 2) label2.setText("인간: 0 컴퓨터 2 인간 승리");
-            }
-            else if (e.getSource() == button2) {
-                if (num == 0) label2.setText("인간: 1 컴퓨터: 0 인간 승리");
-                else if (num == 1) label2.setText("인간: 1 컴퓨터 1 무승부");
-                else if (num == 2) label2.setText("인간: 1 컴퓨터 2 컴퓨터 승리");
-            }
-            else if (e.getSource() == button3) {
-                if (num == 0) label2.setText("인간: 2 컴퓨터: 0 컴퓨터 승리");
-                else if (num == 1) label2.setText("인간: 2, 컴퓨터 1 인간 승리");
-                else if (num == 2) label2.setText("인간: 2 컴퓨터 2 무승부");
-            }
+            JButton button = (JButton) e.getSource();
+            int computerChoice = (int)(Math.random() * 3); //컴퓨터 선택
+            int userChoice = -1;
+
+            if (button == button1) userChoice = 0;
+            else if (button == button2) userChoice = 1;
+            else if (button == button3) userChoice = 2;
+
+            String result = getResult(userChoice, computerChoice);
+            label2.setText(result);
         }
     }
+
+    private String getResult(int userChoice, int computerChoice) {
+        String result;
+
+        if (userChoice == computerChoice) result = "무승부";
+        else if ((userChoice == 0 && computerChoice == 2) ||
+                 (userChoice == 1 && computerChoice == 0) ||
+                 (userChoice == 2 && computerChoice == 1)) { result = "인간 승리"; }
+        else result = "컴퓨터 승리";
+
+        return "인간: " + userChoice + ", 컴퓨터: " + computerChoice + ", 결과: " + result;
+    }
+
 }
 
 public class ActionEventTest2 {
