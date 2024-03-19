@@ -8,8 +8,9 @@ class MyFrame1 extends JFrame {
     private JPanel panel;
 
     public MyFrame1() {
-        this.setSize(300, 200);
-        this.setTitle("이벤트 예제");
+        setSize(300, 200);
+        setTitle("이벤트 예제");
+        
         panel = new JPanel();
         button1 = new JButton("노란색");
         button1.addActionListener(new MyListener());
@@ -17,9 +18,10 @@ class MyFrame1 extends JFrame {
         button2 = new JButton("핑크색");
         button2.addActionListener(new MyListener());
         panel.add(button2);
-        this.add(panel);
-        this.setVisible(true);
-        this.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        add(panel);
+        setVisible(true);
     }
 
     private class MyListener implements ActionListener {

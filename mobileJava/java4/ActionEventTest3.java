@@ -1,4 +1,5 @@
 package mobileJava.java4;
+import java.awt.Component;
 import java.awt.event.*;
 import javax.swing.*;
 
@@ -8,11 +9,22 @@ class MyFrame3 extends JFrame {
 
     public MyFrame3() {
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        this.setLayout(null);
-        this.addKeyListener(new MykeyListener());
+        setLayout(null);
+        addKeyListener(new MykeyListener());
         label.setLocation(0, 0);
         label.setSize(120, 20);
-        this.add(label);
+        add(label);
+
+        setFocusable(true);
+        requestFocus();
+
+        addMouseListener(new MouseAdapter() {
+          public void mouseClicked(MouseEvent e) {
+            Component com = (Component)e.getSource();
+            com.setFocusable(true);
+            com.requestFocus();
+          }
+        });
 
         setVisible(true);
         setSize(300, 300);

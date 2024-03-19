@@ -10,12 +10,12 @@ class MyFrame2 extends JFrame {
 
     public MyFrame2() {
         setTitle("가위, 바위, 보");
-        this.setLayout(new BorderLayout());
+        setLayout(new BorderLayout());
 
         label1 = new JLabel("아래의 버튼 중에서 하나를 클릭하시오!");
         label2 = new  JLabel("결과");
-        this.add(label1, BorderLayout.NORTH);
-        this.add(label2, BorderLayout.SOUTH);
+        add(label1, BorderLayout.NORTH);
+        add(label2, BorderLayout.SOUTH);
 
         panel = new JPanel(new GridLayout(1, 3, 0, 0));
         button1 = new JButton("0: 가위");
@@ -27,7 +27,7 @@ class MyFrame2 extends JFrame {
         panel.add(button1);
         panel.add(button2);
         panel.add(button3);
-        this.add(panel, BorderLayout.CENTER);
+        add(panel, BorderLayout.CENTER);
 
         setSize(400, 200);
         setVisible(true);
