@@ -21,9 +21,11 @@ public class java10_5 extends JFrame{
         int size = f.getSize();
         switch (e.getKeyCode()) {
           case 61:
-          label.setFont(new Font("Arial", Font.PLAIN, size + 5)); break;
+          label.setFont(new Font("Arial", Font.PLAIN, size + 5));
+          break;
           case 45:
-          if (size > 5) label.setFont(new Font("Arial", Font.PLAIN, size - 5)); break;
+          if (size > 5) label.setFont(new Font("Arial", Font.PLAIN, size - 5));
+          break;
         }
       }
     });
