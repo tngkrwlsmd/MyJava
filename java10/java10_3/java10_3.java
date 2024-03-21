@@ -10,6 +10,7 @@ public class java10_3 extends JFrame {
     setTitle("Left 키로 문자열 교체");
     setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
     Container c = getContentPane();
+    c.setLayout(new FlowLayout());
     c.add(label);
 
     c.addKeyListener(new KeyAdapter() {
@@ -18,21 +19,20 @@ public class java10_3 extends JFrame {
         int keyCode = e.getKeyCode();
         switch (keyCode) {
           case KeyEvent.VK_LEFT:
-          if(label.getText().equals("Love Java")) {
-            label.setText("avaJ evoL");
-          }
-          else { label.setText("Love Java"); }
+          StringBuffer stringBuffer = new StringBuffer(label.getText());
+          stringBuffer.reverse();
+          label.setText(stringBuffer.toString());
           break;
           default: break;
         }
       }
     });
 
+    c.setFocusable(true);
+    c.requestFocus();
     setSize(300, 300);
     setLocationRelativeTo(null); //컴포넌트 중앙배치
     setVisible(true);
-    c.setFocusable(true);
-    c.requestFocus();
   }
 
   public static void main(String[] args) {
