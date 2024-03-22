@@ -1,5 +1,6 @@
 package project.sudoku;
 import javax.swing.*;
+import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.util.Random;
@@ -72,29 +73,32 @@ public class SudokuGame extends JFrame {
             }
             fields[i][j].setHorizontalAlignment(JTextField.CENTER); // 텍스트 중앙 정렬
             fields[i][j].setFont(new Font("나눔", Font.BOLD, 20));
-            fields[i][j].addKeyListener(new KeyAdapter() {
+            fields[i][j].getDocument().addDocumentListener(new DocumentListener() {
                 @Override
-                public void keyTyped(KeyEvent e) {
-                    char c = e.getKeyChar();
-                    String input = String.valueOf(c); 
-                    if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
-                        e.consume(); // 1에서 9 사이의 숫자가 아닌 경우 입력을 취소
-                    } else { //숫자를 입력했을 경우
-                        puzzle[ROW][COL] = Integer.valueOf(input);
-                        // 9번 모두 입력했을 경우, 입력을 취소
-                        if (isNumberUsed(Integer.valueOf(input))) e.consume();
-                        updateCountLabels(); // 만약 취소됐다면, 카운트 패널의 숫자는 그대로, 아니면 업데이트
+                public void insertUpdate(DocumentEvent e) {
+                    // 문자가 삽입되었을 때
+                    String input = fields[ROW][COL].getText();
+                    char c = input.charAt(0);
+                    if (input.length() > 0 && ( c >= '0' && c <= '9')) {
+                        puzzle[ROW][COL] = Integer.parseInt(input);
+                        updateCountLabels();
+                    } else {
+                        fields[ROW][COL].setText("");
                     }
                 }
 
                 @Override
-                public void keyPressed(KeyEvent e) {
-                    if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                        puzzle[ROW][COL] = 0;
-                        updateCountLabels();
-                    }
+                public void removeUpdate(DocumentEvent e) {
+                    // 문자가 삭제되었을 때
+                    puzzle[ROW][COL] = 0;
+                    updateCountLabels();
                 }
-                });
+
+                @Override
+                public void changedUpdate(DocumentEvent e) {
+                    // 스타일 등이 변경되었을 때, 사용하지 않음.
+                }
+            });
                 
             panel.add(fields[i][j]);
 
@@ -111,17 +115,17 @@ public class SudokuGame extends JFrame {
         }
     }
 
-        JLabel[] number = new JLabel[10];
-        JPanel numberPanel = new JPanel(new GridLayout(1, 10));
+        JLabel[] inputber = new JLabel[10];
+        JPanel inputberPanel = new JPanel(new GridLayout(1, 10));
         JLabel label1 = new JLabel("숫자");
         label1.setHorizontalAlignment(JLabel.CENTER);
         label1.setFont(new Font("나눔", Font.BOLD, 20));
-        numberPanel.add(label1);
+        inputberPanel.add(label1);
         for (int i = 0; i < 9; i++) {
-            number[i] = new JLabel(String.valueOf(i + 1));
-            number[i].setHorizontalAlignment(JLabel.CENTER);
-            number[i].setFont(new Font("나눔", Font.BOLD, 20));
-            numberPanel.add(number[i]);
+            inputber[i] = new JLabel(String.valueOf(i + 1));
+            inputber[i].setHorizontalAlignment(JLabel.CENTER);
+            inputber[i].setFont(new Font("나눔", Font.BOLD, 20));
+            inputberPanel.add(inputber[i]);
         }
         
         countLabels = new JLabel[10];
@@ -138,7 +142,7 @@ public class SudokuGame extends JFrame {
         }
         
         JPanel panelSouth = new JPanel(new GridLayout(2, 1));
-        panelSouth.add(numberPanel);
+        panelSouth.add(inputberPanel);
         panelSouth.add(countPanel);
         add(panelSouth, BorderLayout.SOUTH);
 
@@ -172,13 +176,13 @@ public class SudokuGame extends JFrame {
         Random random = new Random();
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
-                // numbers를 랜덤으로 섞어 백트래킹
+                // inputbers를 랜덤으로 섞어 백트래킹
                 if (board[row][col] == 0) {
-                    int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-                    shuffleArray(numbers, random);
-                    for (int num : numbers) {
-                        if (isValid(board, row, col, num)) {
-                            board[row][col] = num;
+                    int[] inputbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+                    shuffleArray(inputbers, random);
+                    for (int input : inputbers) {
+                        if (isValid(board, row, col, input)) {
+                            board[row][col] = input;
                             if (solveSudoku(board)) {
                                 return true;
                             }
@@ -203,10 +207,10 @@ public class SudokuGame extends JFrame {
     }
     
 
-    private boolean isValid(int[][] board, int row, int col, int num) {
+    private boolean isValid(int[][] board, int row, int col, int input) {
         // 행과 열 검사
         for (int i = 0; i < SIZE; i++) {
-            if (board[row][i] == num || board[i][col] == num) {
+            if (board[row][i] == input || board[i][col] == input) {
                 return false;
             }
         }
@@ -215,7 +219,7 @@ public class SudokuGame extends JFrame {
         int startCol = col - col % SMALL_SIZE;
         for (int i = startRow; i < startRow + SMALL_SIZE; i++) {
             for (int j = startCol; j < startCol + SMALL_SIZE; j++) {
-                if (board[i][j] == num) {
+                if (board[i][j] == input) {
                     return false;
                 }
             }
@@ -247,28 +251,15 @@ public class SudokuGame extends JFrame {
         int[] counts = new int[9];
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                int number = puzzle[i][j];
-                if (number != 0 && counts[number - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
-                    counts[number - 1]++;
+                int inputber = puzzle[i][j];
+                if (inputber != 0 && counts[inputber - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
+                    counts[inputber - 1]++;
                 }
             }
         }
         for (int i = 0; i < 9; i++) {
             countLabels[i].setText(String.valueOf(counts[i]));
         }
-    }
-
-    private boolean isNumberUsed(int number) {
-        // 해당 숫자가 이미 9번 사용되었는지 확인
-        int count = 0;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (puzzle[i][j] == number) {
-                    count++;
-                }
-            }
-        }
-        return count > 9;
     }
 
     public static void main(String[] args) {
