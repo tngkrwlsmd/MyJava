@@ -151,22 +151,23 @@ public class SudokuGame extends JFrame {
     private void generateSudoku() {
         solution = new int[SIZE][SIZE];
         solveSudoku(solution);
-
+    
         puzzle = new int[SIZE][SIZE];
-        int count = 0; //전체 표시된 숫자
         Random random = new Random();
-        for (int i = 0; i < SIZE; i++) {
-            int rowCount = 0; //행에 표시된 숫자
-            for (int j = 0; j < SIZE; j++) {
-                // 난이도 조절을 위한 확률 설정
-                if (random.nextDouble() > 0.6 && (rowCount < 4 && count < 30)) {
-                    puzzle[i][j] = solution[i][j];
-                    rowCount++;
-                    count++;
-                }
+        int filledCells = 0; // 채워진 셀의 수
+        int targetFilledCells = random.nextInt(20) + 27;
+    
+        while (filledCells < targetFilledCells) {
+            int row = random.nextInt(SIZE);
+            int col = random.nextInt(SIZE);
+    
+            if (puzzle[row][col] == 0) { // 아직 채워지지 않은 셀인 경우
+                puzzle[row][col] = solution[row][col]; // 솔루션의 해당 셀 값을 가져와 퍼즐에 설정
+                filledCells++; // 채워진 셀 수 증가
             }
         }
     }
+    
 
     private boolean solveSudoku(int[][] board) {
         Random random = new Random();
