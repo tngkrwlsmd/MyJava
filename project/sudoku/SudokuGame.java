@@ -15,7 +15,44 @@ public class SudokuGame extends JFrame {
     public SudokuGame() {
         setTitle("Sudoku Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(600, 600);
+        setSize(750, 750);
+
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+
+        JMenu fileMenu = new JMenu("파일");
+        menuBar.add(fileMenu); //프레임 상단에 메뉴 바
+    
+        JMenuItem newGameMenuItem = new JMenuItem("새 게임 시작");
+        newGameMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+            }
+        });
+        fileMenu.add(newGameMenuItem);
+
+        JMenuItem exitMenuItem = new JMenuItem("게임 종료");
+        exitMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                System.exit(0);
+            }
+        });
+        fileMenu.add(exitMenuItem);
+
+        JMenu helpMenu = new JMenu("도움말");
+        menuBar.add(helpMenu);
+
+        JMenuItem aboutMenuItem = new JMenuItem("도움말");
+        aboutMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(SudokuGame.this, "이곳에 도움말을 표시합니다.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        helpMenu.add(aboutMenuItem);
+
         JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
         fields = new JTextField[SIZE][SIZE];
 
@@ -29,34 +66,36 @@ public class SudokuGame extends JFrame {
             fields[i][j] = new JTextField();
             if (puzzle[i][j] != 0) {
                 fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
-                fields[i][j].setEditable(false);
+                fields[i][j].setEnabled(false);
+                fields[i][j].setBackground(Color.WHITE);
+                fields[i][j].setDisabledTextColor(Color.BLACK); // 비활성 상태일 때, 글자 색 설정
             }
             fields[i][j].setHorizontalAlignment(JTextField.CENTER); // 텍스트 중앙 정렬
-            fields[i][j].setFont(new Font("Arial", Font.BOLD, 20));
+            fields[i][j].setFont(new Font("나눔", Font.BOLD, 20));
             fields[i][j].addKeyListener(new KeyAdapter() {
-            @Override
-            public void keyTyped(KeyEvent e) {
-                char c = e.getKeyChar();
-                String input = String.valueOf(c); 
-                if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
-                    e.consume(); // 1에서 9 사이의 숫자가 아닌 경우 입력을 취소
-                } else { //숫자를 입력했을 경우
-                    puzzle[ROW][COL] = Integer.valueOf(input);
-                    // 9번 모두 입력했을 경우, 입력을 취소
-                    if (isNumberUsed(Integer.valueOf(input))) e.consume();
-                    updateCountLabels();
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    String input = String.valueOf(c); 
+                    if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
+                        e.consume(); // 1에서 9 사이의 숫자가 아닌 경우 입력을 취소
+                    } else { //숫자를 입력했을 경우
+                        puzzle[ROW][COL] = Integer.valueOf(input);
+                        // 9번 모두 입력했을 경우, 입력을 취소
+                        if (isNumberUsed(Integer.valueOf(input))) e.consume();
+                        updateCountLabels(); // 만약 취소됐다면, 카운트 패널의 숫자는 그대로
+                    }
                 }
-            }
 
-            @Override
-            public void keyPressed(KeyEvent e) {
-                if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
-                    puzzle[ROW][COL] = 0;
-                    updateCountLabels();
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_BACK_SPACE) {
+                        puzzle[ROW][COL] = 0;
+                        updateCountLabels();
+                    }
                 }
-            }
-            });
-            
+                });
+                
             panel.add(fields[i][j]);
 
             // 3x3 작은 스도쿠 경계에 진한 테두리 추가
@@ -72,24 +111,32 @@ public class SudokuGame extends JFrame {
         }
     }
 
-        JLabel[] number = new JLabel[9];
-        JPanel numberPanel = new JPanel(new GridLayout(1, 9));
+        JLabel[] number = new JLabel[10];
+        JPanel numberPanel = new JPanel(new GridLayout(1, 10));
+        JLabel label1 = new JLabel("숫자");
+        label1.setHorizontalAlignment(JLabel.CENTER);
+        label1.setFont(new Font("나눔", Font.BOLD, 20));
+        numberPanel.add(label1);
         for (int i = 0; i < 9; i++) {
             number[i] = new JLabel(String.valueOf(i + 1));
             number[i].setHorizontalAlignment(JLabel.CENTER);
-            number[i].setFont(new Font("Arial", Font.BOLD, 20));
+            number[i].setFont(new Font("나눔", Font.BOLD, 20));
             numberPanel.add(number[i]);
         }
-
-        countLabels = new JLabel[9];
-        JPanel countPanel = new JPanel(new GridLayout(1, 9));
+        
+        countLabels = new JLabel[10];
+        JLabel label2 = new JLabel("사용");
+        label2.setHorizontalAlignment(JLabel.CENTER);
+        label2.setFont(new Font("나눔", Font.BOLD, 20));
+        JPanel countPanel = new JPanel(new GridLayout(1, 10));
+        countPanel.add(label2);
         for (int i = 0; i < 9; i++) {
             countLabels[i] = new JLabel("0");
             countLabels[i].setHorizontalAlignment(JLabel.CENTER);
-            countLabels[i].setFont(new Font("Arial", Font.PLAIN, 15));
+            countLabels[i].setFont(new Font("나눔", Font.PLAIN, 15));
             countPanel.add(countLabels[i]);
         }
-
+        
         JPanel panelSouth = new JPanel(new GridLayout(2, 1));
         panelSouth.add(numberPanel);
         panelSouth.add(countPanel);
@@ -112,7 +159,7 @@ public class SudokuGame extends JFrame {
             int rowCount = 0; //행에 표시된 숫자
             for (int j = 0; j < SIZE; j++) {
                 // 난이도 조절을 위한 확률 설정
-                if (random.nextDouble() > 0.6 && (rowCount < 3 && count < 27)) {
+                if (random.nextDouble() > 0.6 && (rowCount < 4 && count < 30)) {
                     puzzle[i][j] = solution[i][j];
                     rowCount++;
                     count++;
@@ -176,6 +223,26 @@ public class SudokuGame extends JFrame {
         return true;
     }
 
+    private void resetGame() {
+        generateSudoku(); // 새로운 스도쿠 퍼즐 생성
+        updateFields(); // 퍼즐을 보드에 업데이트
+    }
+    
+    private void updateFields() {
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (puzzle[i][j] != 0) {
+                    fields[i][j].setText(String.valueOf(puzzle[i][j])); // 보드에 숫자 업데이트
+                    fields[i][j].setEditable(false);
+                } else {
+                    fields[i][j].setText(""); // 빈 칸으로 초기화
+                    fields[i][j].setEditable(true);
+                }
+            }
+        }
+        updateCountLabels(); // 숫자 카운트 업데이트
+    }
+
     private void updateCountLabels() {
         int[] counts = new int[9];
         for (int i = 0; i < SIZE; i++) {
@@ -201,7 +268,7 @@ public class SudokuGame extends JFrame {
                 }
             }
         }
-        return count >= 9;
+        return count > 9;
     }
 
     public static void main(String[] args) {
