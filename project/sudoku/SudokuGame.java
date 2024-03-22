@@ -68,12 +68,13 @@ public class SudokuGame extends JFrame {
             if (puzzle[i][j] != 0) {
                 fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
                 fields[i][j].setEnabled(false);
-                fields[i][j].setBackground(Color.WHITE);
+                fields[i][j].setBackground(new Color(220, 220, 220));
                 fields[i][j].setDisabledTextColor(Color.BLACK); // 비활성 상태일 때, 글자 색 설정
             }
             fields[i][j].setHorizontalAlignment(JTextField.CENTER); // 텍스트 중앙 정렬
             fields[i][j].setFont(new Font("나눔", Font.BOLD, 20));
             fields[i][j].getDocument().addDocumentListener(new DocumentListener() {
+                // 1. 문자를 삽입하거나 지웠을 경우
                 @Override
                 public void insertUpdate(DocumentEvent e) {
                     // 문자가 삽입되었을 때
@@ -97,6 +98,23 @@ public class SudokuGame extends JFrame {
                 @Override
                 public void changedUpdate(DocumentEvent e) {
                     // 스타일 등이 변경되었을 때, 사용하지 않음.
+                }
+            });
+
+            fields[i][j].addKeyListener(new KeyAdapter() {
+                // 2. 공란에 BackSpace키를 입력했을 경우
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    String input = String.valueOf(c); 
+                    if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
+                        e.consume(); // 1에서 9 사이의 숫자가 아닌 경우 입력을 취소
+                    } else { //숫자를 입력했을 경우
+                        puzzle[ROW][COL] = Integer.valueOf(input);
+                        // 9번 모두 입력했을 경우, 입력을 취소
+                        if (isNumberUsed(Integer.valueOf(input))) e.consume();
+                        updateCountLabels(); // 만약 취소됐다면, 카운트 패널의 숫자는 그대로, 아니면 업데이트
+                    }
                 }
             });
                 
@@ -157,20 +175,18 @@ public class SudokuGame extends JFrame {
         solveSudoku(solution);
     
         puzzle = new int[SIZE][SIZE];
-        int count = 0; //전체 표시된 숫자
         Random random = new Random();
         for (int i = 0; i < SIZE; i++) {
             int rowCount = 0; //행에 표시된 숫자
             for (int j = 0; j < SIZE; j++) {
                 // 난이도 조절을 위한 확률 설정
-                if (random.nextDouble() > 0.66 && (rowCount < 4 && count < 30)) {
+                if (random.nextDouble() > 0.5 && rowCount < 4) {
                     puzzle[i][j] = solution[i][j];
                     rowCount++;
-                    count++;
                 }
             }
         }
-    }    
+    }
 
     private boolean solveSudoku(int[][] board) {
         Random random = new Random();
@@ -260,6 +276,19 @@ public class SudokuGame extends JFrame {
         for (int i = 0; i < 9; i++) {
             countLabels[i].setText(String.valueOf(counts[i]));
         }
+    }
+
+     private boolean isNumberUsed(int number) {
+        // 해당 숫자가 이미 9번 사용되었는지 확인
+        int count = 0;
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+                if (puzzle[i][j] == number) {
+                    count++;
+                }
+            }
+        }
+        return count > 9;
     }
 
     public static void main(String[] args) {
