@@ -15,7 +15,7 @@ public class SudokuGame extends JFrame {
     public SudokuGame() {
         setTitle("Sudoku Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-        setSize(750, 750);
+        setSize(600, 600);
 
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
@@ -83,7 +83,7 @@ public class SudokuGame extends JFrame {
                         puzzle[ROW][COL] = Integer.valueOf(input);
                         // 9번 모두 입력했을 경우, 입력을 취소
                         if (isNumberUsed(Integer.valueOf(input))) e.consume();
-                        updateCountLabels(); // 만약 취소됐다면, 카운트 패널의 숫자는 그대로
+                        updateCountLabels(); // 만약 취소됐다면, 카운트 패널의 숫자는 그대로, 아니면 업데이트
                     }
                 }
 
@@ -153,21 +153,20 @@ public class SudokuGame extends JFrame {
         solveSudoku(solution);
     
         puzzle = new int[SIZE][SIZE];
+        int count = 0; //전체 표시된 숫자
         Random random = new Random();
-        int filledCells = 0; // 채워진 셀의 수
-        int targetFilledCells = random.nextInt(20) + 27;
-    
-        while (filledCells < targetFilledCells) {
-            int row = random.nextInt(SIZE);
-            int col = random.nextInt(SIZE);
-    
-            if (puzzle[row][col] == 0) { // 아직 채워지지 않은 셀인 경우
-                puzzle[row][col] = solution[row][col]; // 솔루션의 해당 셀 값을 가져와 퍼즐에 설정
-                filledCells++; // 채워진 셀 수 증가
+        for (int i = 0; i < SIZE; i++) {
+            int rowCount = 0; //행에 표시된 숫자
+            for (int j = 0; j < SIZE; j++) {
+                // 난이도 조절을 위한 확률 설정
+                if (random.nextDouble() > 0.66 && (rowCount < 4 && count < 30)) {
+                    puzzle[i][j] = solution[i][j];
+                    rowCount++;
+                    count++;
+                }
             }
         }
-    }
-    
+    }    
 
     private boolean solveSudoku(int[][] board) {
         Random random = new Random();
