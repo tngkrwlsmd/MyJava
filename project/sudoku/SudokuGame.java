@@ -17,6 +17,7 @@ public class SudokuGame extends JFrame {
         setTitle("Sudoku Game");
         setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
         setSize(600, 600);
+        setSize(600, 600);
 
         JMenuBar menuBar = new JMenuBar();
         setJMenuBar(menuBar);
@@ -133,17 +134,17 @@ public class SudokuGame extends JFrame {
         }
     }
 
-        JLabel[] inputber = new JLabel[10];
-        JPanel inputberPanel = new JPanel(new GridLayout(1, 10));
+        JLabel[] number = new JLabel[10];
+        JPanel numberPanel = new JPanel(new GridLayout(1, 10));
         JLabel label1 = new JLabel("숫자");
         label1.setHorizontalAlignment(JLabel.CENTER);
         label1.setFont(new Font("나눔", Font.BOLD, 20));
-        inputberPanel.add(label1);
+        numberPanel.add(label1);
         for (int i = 0; i < 9; i++) {
-            inputber[i] = new JLabel(String.valueOf(i + 1));
-            inputber[i].setHorizontalAlignment(JLabel.CENTER);
-            inputber[i].setFont(new Font("나눔", Font.BOLD, 20));
-            inputberPanel.add(inputber[i]);
+            number[i] = new JLabel(String.valueOf(i + 1));
+            number[i].setHorizontalAlignment(JLabel.CENTER);
+            number[i].setFont(new Font("나눔", Font.BOLD, 20));
+            numberPanel.add(number[i]);
         }
         
         countLabels = new JLabel[10];
@@ -160,7 +161,7 @@ public class SudokuGame extends JFrame {
         }
         
         JPanel panelSouth = new JPanel(new GridLayout(2, 1));
-        panelSouth.add(inputberPanel);
+        panelSouth.add(numberPanel);
         panelSouth.add(countPanel);
         add(panelSouth, BorderLayout.SOUTH);
 
@@ -192,13 +193,13 @@ public class SudokuGame extends JFrame {
         Random random = new Random();
         for (int row = 0; row < SIZE; row++) {
             for (int col = 0; col < SIZE; col++) {
-                // inputbers를 랜덤으로 섞어 백트래킹
+                // numbers를 랜덤으로 섞어 백트래킹
                 if (board[row][col] == 0) {
-                    int[] inputbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-                    shuffleArray(inputbers, random);
-                    for (int input : inputbers) {
-                        if (isValid(board, row, col, input)) {
-                            board[row][col] = input;
+                    int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+                    shuffleArray(numbers, random);
+                    for (int num : numbers) {
+                        if (isValid(board, row, col, num)) {
+                            board[row][col] = num;
                             if (solveSudoku(board)) {
                                 return true;
                             }
@@ -223,10 +224,10 @@ public class SudokuGame extends JFrame {
     }
     
 
-    private boolean isValid(int[][] board, int row, int col, int input) {
+    private boolean isValid(int[][] board, int row, int col, int num) {
         // 행과 열 검사
         for (int i = 0; i < SIZE; i++) {
-            if (board[row][i] == input || board[i][col] == input) {
+            if (board[row][i] == num || board[i][col] == num) {
                 return false;
             }
         }
@@ -235,7 +236,7 @@ public class SudokuGame extends JFrame {
         int startCol = col - col % SMALL_SIZE;
         for (int i = startRow; i < startRow + SMALL_SIZE; i++) {
             for (int j = startCol; j < startCol + SMALL_SIZE; j++) {
-                if (board[i][j] == input) {
+                if (board[i][j] == num) {
                     return false;
                 }
             }
@@ -267,9 +268,9 @@ public class SudokuGame extends JFrame {
         int[] counts = new int[9];
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
-                int inputber = puzzle[i][j];
-                if (inputber != 0 && counts[inputber - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
-                    counts[inputber - 1]++;
+                int number = puzzle[i][j];
+                if (number != 0 && counts[number - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
+                    counts[number - 1]++;
                 }
             }
         }
