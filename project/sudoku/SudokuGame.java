@@ -459,12 +459,12 @@ public class SudokuGame extends JFrame {
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
         File input = new File(filePath + filename);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(input))) {
+        try (FileOutputStream outputStream = new FileOutputStream(input)) {
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
-                    writer.write(puzzle[i][j] + '0');
+                    outputStream.write(puzzle[i][j]);
                 }
-                writer.newLine();
+                outputStream.write(System.lineSeparator().getBytes()); // 줄 바꿈
             }
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());

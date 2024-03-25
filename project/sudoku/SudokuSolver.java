@@ -75,13 +75,13 @@ public class SudokuSolver {
             return;
         }
         
-        System.out.println("Original Sudoku:");
-        printSudoku(sudokuPuzzle);
+        //System.out.println("Original Sudoku:");
+        //printSudoku(sudokuPuzzle);
         System.out.println("\nSolving...\n");
         
         if (solveSudoku(sudokuPuzzle)) {
-            System.out.println("Solved Sudoku:");
-            printSudoku(sudokuPuzzle);
+            //System.out.println("Solved Sudoku:");
+            //printSudoku(sudokuPuzzle);
             saveSudokuToFile(sudokuPuzzle, "solveSudoku.sgd");
         } else {
             System.out.println("No solution exists.");
@@ -95,18 +95,15 @@ public class SudokuSolver {
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
         File input = new File(filePath + filename);
-        try (BufferedReader reader = new BufferedReader(new BufferedReader(new FileReader(input)))) {            
-            String line;
-            int row = 0;
-            while ((line = reader.readLine()) != null) {
-                if (line.length() != 9) {
-                    System.err.println("Invalid Sudoku format.");
-                    return null;
-                }
+        try (FileInputStream inputStream = new FileInputStream(input)) {            
+            int n;
+            for (int row = 0; row < 9; row ++) {
                 for (int col = 0; col < 9; col++) {
-                    puzzle[row][col] = Character.getNumericValue(line.charAt(col));
+                    while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                        //무시함
+                    }
+                    if (n != -1) puzzle[row][col] = (byte)n;
                 }
-                row++;
             }
         } catch (IOException e) {
             System.err.println("Error reading file: " + e.getMessage());
@@ -122,12 +119,12 @@ public class SudokuSolver {
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
         File input = new File(filePath + filename);
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(input))) {
+        try (FileOutputStream outputStream = new FileOutputStream(input)) {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
-                    writer.write(puzzle[i][j] + '0');
+                    outputStream.write(puzzle[i][j]);
                 }
-                writer.newLine();
+                outputStream.write(System.lineSeparator().getBytes());
             }
             System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
         } catch (IOException e) {
