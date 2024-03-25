@@ -68,7 +68,7 @@ public class SudokuSolver {
     }
 
     public static void main(String[] args) {
-        int[][] sudokuPuzzle = readSudokuFromFile("inputSudoku.txt");
+        int[][] sudokuPuzzle = readSudokuFromFile("inputSudoku.sgd");
         
         if (sudokuPuzzle == null) {
             System.out.println("Failed to read Sudoku from file.");
@@ -82,7 +82,7 @@ public class SudokuSolver {
         if (solveSudoku(sudokuPuzzle)) {
             System.out.println("Solved Sudoku:");
             printSudoku(sudokuPuzzle);
-            saveSudokuToFile(sudokuPuzzle, "solveSudoku.txt");
+            saveSudokuToFile(sudokuPuzzle, "solveSudoku.sgd");
         } else {
             System.out.println("No solution exists.");
         }

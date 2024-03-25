@@ -338,7 +338,7 @@ public class SudokuGame extends JFrame {
                 rowEmpty[row]++;
             }
         }
-        saveSudokuToFile("inputSudoku.txt");
+        saveSudokuToFile("inputSudoku.sgd");
     }
 
     private boolean solveSudoku(int[][] board) {
