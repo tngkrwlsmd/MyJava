@@ -111,7 +111,7 @@ public class ShootingGame extends JPanel implements KeyListener {
   
       // 새로운 적 생성
       Random random = new Random();
-      if (random.nextDouble() < 0.01) { // 적이 생성될 확률
+      if (random.nextDouble() < 0.05) { // 적이 생성될 확률
           int x = random.nextInt(WIDTH);
           int y = -20; // 적이 화면 위에서 생성되도록 y 좌표 설정
           enemies.add(new Enemy(x, y));

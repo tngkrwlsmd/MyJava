@@ -75,26 +75,24 @@ public class SudokuSolver {
             return;
         }
         
-        //System.out.println("Original Sudoku:");
-        //printSudoku(sudokuPuzzle);
+        System.out.println("Original Sudoku:");
+        printSudoku(sudokuPuzzle);
         System.out.println("\nSolving...\n");
         
         if (solveSudoku(sudokuPuzzle)) {
-            //System.out.println("Solved Sudoku:");
-            //printSudoku(sudokuPuzzle);
+            System.out.println("Solved Sudoku:");
+            printSudoku(sudokuPuzzle);
             saveSudokuToFile(sudokuPuzzle, "solveSudoku.sgd");
         } else {
             System.out.println("No solution exists.");
         }
     }
     
-    public static int[][] readSudokuFromFile(String filename) {
+    public static int[][] readSudokuFromFile(String fileName) {
         int[][] puzzle = new int[9][9];
         
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/GameData/";
-        File directory = new File(filePath);
-        if (!directory.exists()) directory.mkdirs();
-        File input = new File(filePath + filename);
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File input = new File(filePath + fileName);
         try (FileInputStream inputStream = new FileInputStream(input)) {            
             int n;
             for (int row = 0; row < 9; row ++) {
@@ -113,12 +111,12 @@ public class SudokuSolver {
         return puzzle;
     }
 
-    public static void saveSudokuToFile(int[][] puzzle, String filename) {
+    public static void saveSudokuToFile(int[][] puzzle, String fileName) {
 
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/GameData/";
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
-        File input = new File(filePath + filename);
+        File input = new File(filePath + fileName);
         try (FileOutputStream outputStream = new FileOutputStream(input)) {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
@@ -126,7 +124,7 @@ public class SudokuSolver {
                 }
                 outputStream.write(System.lineSeparator().getBytes());
             }
-            System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
+            System.out.println("Sudoku puzzle solved successfully and saved to " + fileName);
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
