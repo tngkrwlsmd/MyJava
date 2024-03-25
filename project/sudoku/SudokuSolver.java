@@ -1,5 +1,7 @@
 package project.sudoku;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Arrays;
 
 public class SudokuSolver {
@@ -68,7 +70,7 @@ public class SudokuSolver {
     }
 
     public static void main(String[] args) {
-        int[][] sudokuPuzzle = readSudokuFromFile("C:/java/project/sudoku/inputSudoku.txt");
+        int[][] sudokuPuzzle = readSudokuFromFile("inputSudoku.txt");
         
         if (sudokuPuzzle == null) {
             System.out.println("Failed to read Sudoku from file.");
@@ -82,7 +84,7 @@ public class SudokuSolver {
         if (solveSudoku(sudokuPuzzle)) {
             System.out.println("Solved Sudoku:");
             printSudoku(sudokuPuzzle);
-            saveSudokuToFile(sudokuPuzzle, "C:/java/project/sudoku/solveSudoku.txt");
+            saveSudokuToFile(sudokuPuzzle, "solveSudoku.txt");
         } else {
             System.out.println("No solution exists.");
         }
@@ -91,10 +93,12 @@ public class SudokuSolver {
     public static int[][] readSudokuFromFile(String filename) {
         int[][] puzzle = new int[9][9];
         
-        try (BufferedReader br = new BufferedReader(new FileReader(filename))) {
+        try (InputStream inputStream = SudokuSolver.class.getResourceAsStream(filename);
+             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+            
             String line;
             int row = 0;
-            while ((line = br.readLine()) != null) {
+            while ((line = reader.readLine()) != null) {
                 if (line.length() != 9) {
                     System.err.println("Invalid Sudoku format.");
                     return null;
@@ -113,16 +117,23 @@ public class SudokuSolver {
     }
 
     public static void saveSudokuToFile(int[][] puzzle, String filename) {
-        try (BufferedWriter bw = new BufferedWriter(new FileWriter(filename))) {
-            for (int i = 0; i < 9; i++) {
-                for (int j = 0; j < 9; j++) {
-                    bw.write(Integer.toString(puzzle[i][j]));
+        
+        try {
+            URI uri = SudokuSolver.class.getResource(filename).toURI();
+            File file = new File(uri);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                for (int i = 0; i < 9; i++) {
+                    for (int j = 0; j < 9; j++) {
+                        writer.write(puzzle[i][j] + '0');
+                    }
+                    writer.newLine();
                 }
-                bw.newLine();
+                System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
+            } catch (IOException e) {
+                System.err.println("Error writing to file: " + e.getMessage());
             }
-            System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
-        } catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            System.err.println("URI syntax error: " + e.getMessage());
         }
     }
 }

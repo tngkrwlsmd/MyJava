@@ -4,6 +4,8 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.util.Random;
 
 public class SudokuGame extends JFrame {
@@ -338,7 +340,7 @@ public class SudokuGame extends JFrame {
                 rowEmpty[row]++;
             }
         }
-        saveSudokuToFile("C:/java/project/sudoku/inputSudoku.txt");
+        saveSudokuToFile("inputSudoku.txt");
     }
 
     private boolean solveSudoku(int[][] board) {
@@ -454,15 +456,22 @@ public class SudokuGame extends JFrame {
     }
 
     private void saveSudokuToFile(String filename) {
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filename))) {
-            for (int i = 0; i < SIZE; i++) {
-                for (int j = 0; j < SIZE; j++) {
-                    writer.write(puzzle[i][j] + '0');
+
+        try {
+            URI uri = SudokuGame.class.getResource(filename).toURI();
+            File file = new File(uri);
+            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
+                for (int i = 0; i < SIZE; i++) {
+                    for (int j = 0; j < SIZE; j++) {
+                        writer.write(puzzle[i][j] + '0');
+                    }
+                    writer.newLine();
                 }
-                writer.newLine();
+            } catch (IOException e) {
+                System.err.println("Error writing to file: " + e.getMessage());
             }
-        } catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
+        } catch (URISyntaxException e) {
+            System.err.println("URI syntax error: " + e.getMessage());
         }
     }
 
