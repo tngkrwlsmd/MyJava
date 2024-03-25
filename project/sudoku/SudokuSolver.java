@@ -91,9 +91,11 @@ public class SudokuSolver {
     public static int[][] readSudokuFromFile(String filename) {
         int[][] puzzle = new int[9][9];
         
-        String filePath = "project/sudoku/" + filename;
-        try (BufferedReader reader = new BufferedReader(new BufferedReader(new FileReader(filePath)))) {
-            
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/GameData/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + filename);
+        try (BufferedReader reader = new BufferedReader(new BufferedReader(new FileReader(input)))) {            
             String line;
             int row = 0;
             while ((line = reader.readLine()) != null) {
@@ -116,8 +118,11 @@ public class SudokuSolver {
 
     public static void saveSudokuToFile(int[][] puzzle, String filename) {
 
-        String filePath = "project/sudoku/" + filename;
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/GameData/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + filename);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(input))) {
             for (int i = 0; i < 9; i++) {
                 for (int j = 0; j < 9; j++) {
                     writer.write(puzzle[i][j] + '0');

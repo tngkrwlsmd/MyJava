@@ -455,8 +455,11 @@ public class SudokuGame extends JFrame {
 
     private void saveSudokuToFile(String filename) {
 
-        String filePath = "project/sudoku/" + filename;
-        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/GameData/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + filename);
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(input))) {
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
                     writer.write(puzzle[i][j] + '0');
