@@ -4,8 +4,6 @@ import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Random;
 
 public class SudokuGame extends JFrame {
@@ -457,21 +455,16 @@ public class SudokuGame extends JFrame {
 
     private void saveSudokuToFile(String filename) {
 
-        try {
-            URI uri = SudokuGame.class.getResource(filename).toURI();
-            File file = new File(uri);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                for (int i = 0; i < SIZE; i++) {
-                    for (int j = 0; j < SIZE; j++) {
-                        writer.write(puzzle[i][j] + '0');
-                    }
-                    writer.newLine();
+        String filePath = "project/sudoku/" + filename;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (int i = 0; i < SIZE; i++) {
+                for (int j = 0; j < SIZE; j++) {
+                    writer.write(puzzle[i][j] + '0');
                 }
-            } catch (IOException e) {
-                System.err.println("Error writing to file: " + e.getMessage());
+                writer.newLine();
             }
-        } catch (URISyntaxException e) {
-            System.err.println("URI syntax error: " + e.getMessage());
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
         }
     }
 

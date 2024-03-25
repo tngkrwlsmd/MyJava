@@ -1,7 +1,5 @@
 package project.sudoku;
 import java.io.*;
-import java.net.URI;
-import java.net.URISyntaxException;
 import java.util.Arrays;
 
 public class SudokuSolver {
@@ -93,8 +91,8 @@ public class SudokuSolver {
     public static int[][] readSudokuFromFile(String filename) {
         int[][] puzzle = new int[9][9];
         
-        try (InputStream inputStream = SudokuSolver.class.getResourceAsStream(filename);
-             BufferedReader reader = new BufferedReader(new InputStreamReader(inputStream))) {
+        String filePath = "project/sudoku/" + filename;
+        try (BufferedReader reader = new BufferedReader(new BufferedReader(new FileReader(filePath)))) {
             
             String line;
             int row = 0;
@@ -117,23 +115,18 @@ public class SudokuSolver {
     }
 
     public static void saveSudokuToFile(int[][] puzzle, String filename) {
-        
-        try {
-            URI uri = SudokuSolver.class.getResource(filename).toURI();
-            File file = new File(uri);
-            try (BufferedWriter writer = new BufferedWriter(new FileWriter(file))) {
-                for (int i = 0; i < 9; i++) {
-                    for (int j = 0; j < 9; j++) {
-                        writer.write(puzzle[i][j] + '0');
-                    }
-                    writer.newLine();
+
+        String filePath = "project/sudoku/" + filename;
+        try (BufferedWriter writer = new BufferedWriter(new FileWriter(filePath))) {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    writer.write(puzzle[i][j] + '0');
                 }
-                System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
-            } catch (IOException e) {
-                System.err.println("Error writing to file: " + e.getMessage());
+                writer.newLine();
             }
-        } catch (URISyntaxException e) {
-            System.err.println("URI syntax error: " + e.getMessage());
+            System.out.println("Sudoku puzzle solved successfully and saved to " + filename);
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
         }
     }
 }
