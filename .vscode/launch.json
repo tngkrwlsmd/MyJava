@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "java10_7",
+      "request": "launch",
+      "mainClass": "java10.java10_7.java10_7",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
       "name": "Current File",
       "request": "launch",
       "mainClass": "${file}"
