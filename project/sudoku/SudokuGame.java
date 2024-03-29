@@ -13,8 +13,8 @@ public class SudokuGame extends JFrame {
     private JLabel[] countLabels; // 각 숫자 카운트를 표시하는 레이블 배열
     private static final int SIZE = 9; // 스도쿠 보드의 크기
     private static final int SMALL_SIZE = 3; // 작은 3x3 그룹의 크기
-    private int difficulty; // 스도쿠의 난이도를 설정하는 변수
-    private int rowDifficulty; // 같은 행에 삽입되는 숫자를 제한
+    private int totalEmptyCells; // 스도쿠의 난이도를 설정하는 변수
+    private int rowEmptyCellLimit; // 같은 행에 삽입되는 숫자를 제한
     private JLabel timeLabel; // 시간을 나타낼 레이블
     private Timer timer; // 타이머 변수
     private int secondsPassed; // 경과된 시간 (초)
@@ -39,71 +39,71 @@ public class SudokuGame extends JFrame {
         startButton = new JButton("게임 시작");
         startButton.addActionListener(new ActionListener() {
             public void actionPerformed(ActionEvent e) {
-                JFrame difficultyFrame = new JFrame("난이도 선택");
-                difficultyFrame.setSize(400, 400);
-                difficultyFrame.setResizable(false);
-                difficultyFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 창을 닫을 때 종료하지 않고 닫기만 함
-                difficultyFrame.setLayout(new GridLayout(2, 1));
+                JFrame totalEmptyCellsFrame = new JFrame("난이도 선택");
+                totalEmptyCellsFrame.setSize(400, 400);
+                totalEmptyCellsFrame.setResizable(false);
+                totalEmptyCellsFrame.setDefaultCloseOperation(JFrame.DISPOSE_ON_CLOSE); // 창을 닫을 때 종료하지 않고 닫기만 함
+                totalEmptyCellsFrame.setLayout(new GridLayout(2, 1));
         
-                JLabel difficultyLabel = new JLabel("난이도를 선택하세요!");
-                difficultyLabel.setFont(new Font("나눔", Font.BOLD, 20));
-                difficultyLabel.setHorizontalAlignment(JLabel.CENTER);
-                difficultyFrame.add(difficultyLabel);
+                JLabel totalEmptyCellsLabel = new JLabel("난이도를 선택하세요!");
+                totalEmptyCellsLabel.setFont(new Font("나눔", Font.BOLD, 20));
+                totalEmptyCellsLabel.setHorizontalAlignment(JLabel.CENTER);
+                totalEmptyCellsFrame.add(totalEmptyCellsLabel);
                 
-                JPanel difficultyPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, 10));
-                difficultyFrame.add(difficultyPanel);
+                JPanel totalEmptyCellsPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 400, 10));
+                totalEmptyCellsFrame.add(totalEmptyCellsPanel);
 
                 JButton veryEasyButton = new JButton("Very Esay");
                 veryEasyButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         startFrame.setVisible(false);
-                        difficultyFrame.dispose(); // 다이얼로그 닫기
-                        difficulty = 27;
-                        rowDifficulty = 3;
+                        totalEmptyCellsFrame.dispose(); // 다이얼로그 닫기
+                        totalEmptyCells = 27;
+                        rowEmptyCellLimit = 3;
                         initializeGame();
                     }
                 });
-                difficultyPanel.add(veryEasyButton);
+                totalEmptyCellsPanel.add(veryEasyButton);
         
                 JButton easyButton = new JButton("Esay");
                 easyButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         startFrame.setVisible(false);
-                        difficultyFrame.dispose();
-                        difficulty = 36;
-                        rowDifficulty = 4;
+                        totalEmptyCellsFrame.dispose();
+                        totalEmptyCells = 36;
+                        rowEmptyCellLimit = 4;
                         initializeGame();
                     }
                 });
-                difficultyPanel.add(easyButton);
+                totalEmptyCellsPanel.add(easyButton);
         
                 JButton normalButton = new JButton("Normal");
                 normalButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         startFrame.setVisible(false);
-                        difficultyFrame.dispose();
-                        difficulty = 45;
-                        rowDifficulty = 5;
+                        totalEmptyCellsFrame.dispose();
+                        totalEmptyCells = 45;
+                        rowEmptyCellLimit = 5;
                         initializeGame();
                     }
                 });
-                difficultyPanel.add(normalButton);
+                totalEmptyCellsPanel.add(normalButton);
 
                 JButton hardButton = new JButton("Hard");
                 hardButton.addActionListener(new ActionListener() {
                     public void actionPerformed(ActionEvent e) {
                         startFrame.setVisible(false);
-                        difficultyFrame.dispose();
-                        difficulty = 54;
-                        rowDifficulty = 6;
+                        totalEmptyCellsFrame.dispose();
+                        totalEmptyCells = 54;
+                        rowEmptyCellLimit = 6;
                         initializeGame();
                     }
                 });
-                difficultyPanel.add(hardButton);
+                totalEmptyCellsPanel.add(hardButton);
         
                 // 다이얼로그를 화면 중앙에 표시
-                difficultyFrame.setLocationRelativeTo(null);
-                difficultyFrame.setVisible(true);
+                totalEmptyCellsFrame.setLocationRelativeTo(null);
+                totalEmptyCellsFrame.setVisible(true);
             }
         });
 
@@ -116,9 +116,9 @@ public class SudokuGame extends JFrame {
                     initializeGame();
                     try (FileInputStream inputStream = new FileInputStream(autoSaveFile)) {
                         int n;
-                        difficulty = inputStream.read(); //첫째줄
+                        totalEmptyCells = inputStream.read(); //첫째줄
                         inputStream.read();
-                        rowDifficulty = inputStream.read(); //둘째줄
+                        rowEmptyCellLimit = inputStream.read(); //둘째줄
                         inputStream.read();
                         for (int row = 0; row < 9; row ++) {
                             for (int col = 0; col < 9; col++) {
@@ -407,6 +407,18 @@ public class SudokuGame extends JFrame {
         buttonPanel.add(memoButton);
         buttonPanel.add(exitButton);
 
+        // 가끔 F5 키를 눌러도 재시작이 안 되는 오류 수정
+        JButton[] buttons = {hintButton, memoButton, exitButton};
+
+        for (JButton button : buttons) {
+            button.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    button.transferFocus(); // 포커스를 잃도록 설정
+                }
+            });
+        }
+
         JPanel UI_Panel = new JPanel(new GridLayout(2, 1));
         UI_Panel.add(panelSouth);
         UI_Panel.add(buttonPanel);
@@ -446,10 +458,10 @@ public class SudokuGame extends JFrame {
         // count : 빈 셀의 개수
         int count = 0;
         int[] rowEmpty = new int[9];
-        while (count < difficulty) {
+        while (count < totalEmptyCells) {
             int row = random.nextInt(SIZE);
             int col = random.nextInt(SIZE);
-            if (puzzle[row][col] != 0 && rowEmpty[row] < rowDifficulty) {
+            if (puzzle[row][col] != 0 && rowEmpty[row] < rowEmptyCellLimit) {
                 puzzle[row][col] = 0; // 빈 셀로 변경
                 count++;
                 rowEmpty[row]++;
@@ -577,9 +589,9 @@ public class SudokuGame extends JFrame {
         if (!directory.exists()) directory.mkdirs();
         File input = new File(filePath + fileName);
         try (FileOutputStream outputStream = new FileOutputStream(input)) {
-            outputStream.write(difficulty);
+            outputStream.write(totalEmptyCells);
             outputStream.write(System.lineSeparator().getBytes());
-            outputStream.write(rowDifficulty);
+            outputStream.write(rowEmptyCellLimit);
             outputStream.write(System.lineSeparator().getBytes());
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
