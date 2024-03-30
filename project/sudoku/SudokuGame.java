@@ -1,23 +1,30 @@
 package project.sudoku;
 import javax.swing.*;
+import javax.swing.Timer;
 import javax.swing.event.*;
 import java.awt.*;
 import java.awt.event.*;
 import java.io.*;
-import java.util.Random;
+import java.util.*;
 
 public class SudokuGame extends JFrame {
     private JTextField[][] fields; // 스도쿠 보드의 각 셀에 대한 JTextField 배열
     private int[][] solution; // 완전한 스도쿠 솔루션을 저장하는 배열
     private int[][] puzzle; // 사용자가 풀어야 할 스도쿠 퍼즐을 저장하는 배열
     private JLabel[] countLabels; // 각 숫자 카운트를 표시하는 레이블 배열
+    private int[][] userInput; // 사용자가 입력한 숫자를 저장하는 배열
+
     private static final int SIZE = 9; // 스도쿠 보드의 크기
     private static final int SMALL_SIZE = 3; // 작은 3x3 그룹의 크기
+
     private int totalEmptyCells; // 스도쿠의 난이도를 설정하는 변수
     private int rowEmptyCellLimit; // 같은 행에 삽입되는 숫자를 제한
+
     private JLabel timeLabel; // 시간을 나타낼 레이블
     private Timer timer; // 타이머 변수
     private int secondsPassed; // 경과된 시간 (초)
+
+    private int hintCount; // 사용한 힌트 개수(최대 10개)
 
     public SudokuGame() {
 
@@ -116,27 +123,44 @@ public class SudokuGame extends JFrame {
                     initializeGame();
                     try (FileInputStream inputStream = new FileInputStream(autoSaveFile)) {
                         int n;
-                        totalEmptyCells = inputStream.read(); //첫째줄
-                        inputStream.read();
-                        rowEmptyCellLimit = inputStream.read(); //둘째줄
-                        inputStream.read();
+
+                        totalEmptyCells = inputStream.read(); 
+                        rowEmptyCellLimit = inputStream.read(); 
+                        secondsPassed = inputStream.read(); 
+                        hintCount = inputStream.read();
+
                         for (int row = 0; row < 9; row ++) {
                             for (int col = 0; col < 9; col++) {
                                 while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
-                                    //무시함
+                                    // 무시함
                                 }
                                 if (n != -1) {
                                     puzzle[row][col] = (byte)n;
                                 }
                             }
                         }
+
+                        for (int row = 0; row < 9; row ++) {
+                            for (int col = 0; col < 9; col++) {
+                                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                                    // 무시함
+                                }
+                                if (n != -1) {
+                                    userInput[row][col] = (byte)n;
+                                }
+                            }
+                        }
+
                         updateFields();
+
                         for (int i = 0; i < SIZE; i++) {
                             for (int j = 0; j < SIZE; j++) {
                                 fields[i][j].setBackground(Color.WHITE);
                                 if (puzzle[i][j] != 0) fields[i][j].setBackground(new Color(220, 220, 220));
+                                if (userInput[i][j] != 0) fields[i][j].setBackground(Color.WHITE);
                             }
                         }
+
                     } catch (IOException ex) {
                         ex.printStackTrace();
                     }
@@ -241,7 +265,7 @@ public class SudokuGame extends JFrame {
 
         JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
         fields = new JTextField[SIZE][SIZE];
-
+        userInput = new int[SIZE][SIZE];
         generateSudoku(); // 스도쿠 퍼즐 생성
 
         for (int i = 0; i < SIZE; i++) {
@@ -267,6 +291,7 @@ public class SudokuGame extends JFrame {
                     char c = input.charAt(0);
                     if (input.length() > 0 && ( c >= '0' && c <= '9')) {
                         puzzle[ROW][COL] = Integer.parseInt(input);
+                        userInput[ROW][COL] = puzzle[ROW][COL];
                         updateCountLabels();
                     } else {
                         fields[ROW][COL].setText("");
@@ -277,6 +302,7 @@ public class SudokuGame extends JFrame {
                 public void removeUpdate(DocumentEvent e) {
                     // 문자가 삭제되었을 때
                     puzzle[ROW][COL] = 0;
+                    userInput[ROW][COL] = puzzle[ROW][COL];
                     updateCountLabels();
                 }
 
@@ -359,12 +385,16 @@ public class SudokuGame extends JFrame {
         panelSouth.add(countPanel);
 
         JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 100, 10)); 
-
         JButton hintButton = new JButton("힌트");
         hintButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 힌트 기능 구현
+                if (hintCount < 10) {
+                    int hint = JOptionPane.showConfirmDialog(SudokuGame.this, "힌트를 사용하시겠습니까?\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.YES_NO_OPTION);
+                    if (hint == JOptionPane.YES_OPTION) applyHint();
+                } else {
+                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.INFORMATION_MESSAGE);
+                }
             }
         });
 
@@ -526,8 +556,10 @@ public class SudokuGame extends JFrame {
     }
 
     private void resetGame() {
-        generateSudoku(); // 새로운 스도쿠 퍼즐 생성
-        updateFields(); // 퍼즐을 보드에 업데이트
+        generateSudoku();
+        updateFields();
+        secondsPassed = 0;
+        hintCount = 0;
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 fields[i][j].setBackground(Color.WHITE); // 배경색을 모두 흰색으로 초기화
@@ -535,14 +567,44 @@ public class SudokuGame extends JFrame {
             }
         }
     }
+
+    private void applyHint() {
+        Random random = new Random();
+        ArrayList<Point> hintCells = new ArrayList<>(); // Point: GridLayout에서 셀의 인덱스에 대한 정보를 가짐
+
+        for (int row = 0; row < SIZE; row++) {
+            for (int col = 0; col < SIZE; col++) {
+                if (puzzle[row][col] == 0 || userInput[row][col] != solution[row][col]) {
+                    hintCells.add(new Point(row, col));
+                }
+            }
+        }
+
+        int hintCellCount = hintCells.size();
+
+        if (hintCellCount == 0) {
+            JOptionPane.showMessageDialog(SudokuGame.this, "더 이상 힌트를 적용할 수 없습니다.", "힌트 사용 불가", JOptionPane.INFORMATION_MESSAGE);
+            return;
+        }
+
+        int randomIndex = random.nextInt(hintCellCount);
+        Point selectedCell = hintCells.get(randomIndex);
+        int row = selectedCell.x;
+        int col = selectedCell.y;
+
+        puzzle[row][col] = solution[row][col];
+        hintCount++;
+        updateFields();
+        fields[row][col].setBackground(new Color(220, 220, 220));
+}
     
     private void updateFields() {
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
                 if (puzzle[i][j] != 0) {
-                    fields[i][j].setText(String.valueOf(puzzle[i][j])); // 보드에 숫자 업데이트
+                    fields[i][j].setText(String.valueOf(puzzle[i][j]));
                     fields[i][j].setEnabled(false);
-                    fields[i][j].setDisabledTextColor(Color.BLACK); // 비활성 상태일 때, 글자 색 설정
+                    fields[i][j].setDisabledTextColor(Color.BLACK);
                 } else {
                     fields[i][j].setText(""); // 빈 칸으로 초기화
                     fields[i][j].setEnabled(true);
@@ -583,22 +645,31 @@ public class SudokuGame extends JFrame {
     }
 
     private void saveSudokuToFile(String fileName) {
-
         String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
         File input = new File(filePath + fileName);
         try (FileOutputStream outputStream = new FileOutputStream(input)) {
             outputStream.write(totalEmptyCells);
-            outputStream.write(System.lineSeparator().getBytes());
             outputStream.write(rowEmptyCellLimit);
+            outputStream.write(secondsPassed);
+            outputStream.write(hintCount);
             outputStream.write(System.lineSeparator().getBytes());
+
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
                     outputStream.write(puzzle[i][j]);
                 }
+                outputStream.write(System.lineSeparator().getBytes());
+            }
+            
+            for (int i = 0; i < SIZE; i++) {
+                for (int j = 0; j < SIZE; j++) {
+                    outputStream.write(userInput[i][j]);
+                }
                 outputStream.write(System.lineSeparator().getBytes()); // 줄 바꿈
             }
+
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
