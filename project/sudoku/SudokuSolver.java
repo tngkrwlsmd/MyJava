@@ -95,7 +95,6 @@ public class SudokuSolver {
         File input = new File(filePath + fileName);
         try (FileInputStream inputStream = new FileInputStream(input)) {            
             int n;
-            inputStream.read(); inputStream.read(); inputStream.read(); inputStream.read();
             for (int row = 0; row < 9; row ++) {
                 for (int col = 0; col < 9; col++) {
                     while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {

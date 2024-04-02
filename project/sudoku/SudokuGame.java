@@ -120,50 +120,7 @@ public class SudokuGame extends JFrame {
                 File autoSaveFile = new File(System.getProperty("user.home") + "/Documents/SaveSudoku/autoSave.sgd");
                 if (autoSaveFile.exists()) {                   
                     startFrame.setVisible(false);
-                    initializeGame();
-                    try (FileInputStream inputStream = new FileInputStream(autoSaveFile)) {
-                        int n;
-
-                        totalEmptyCells = inputStream.read(); 
-                        rowEmptyCellLimit = inputStream.read(); 
-                        secondsPassed = inputStream.read(); 
-                        hintCount = inputStream.read();
-
-                        for (int row = 0; row < 9; row ++) {
-                            for (int col = 0; col < 9; col++) {
-                                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
-                                    // 무시함
-                                }
-                                if (n != -1) {
-                                    puzzle[row][col] = (byte)n;
-                                }
-                            }
-                        }
-
-                        for (int row = 0; row < 9; row ++) {
-                            for (int col = 0; col < 9; col++) {
-                                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
-                                    // 무시함
-                                }
-                                if (n != -1) {
-                                    userInput[row][col] = (byte)n;
-                                }
-                            }
-                        }
-
-                        updateFields();
-
-                        for (int i = 0; i < SIZE; i++) {
-                            for (int j = 0; j < SIZE; j++) {
-                                fields[i][j].setBackground(Color.WHITE);
-                                if (puzzle[i][j] != 0) fields[i][j].setBackground(new Color(220, 220, 220));
-                                if (userInput[i][j] != 0) fields[i][j].setBackground(Color.WHITE);
-                            }
-                        }
-
-                    } catch (IOException ex) {
-                        ex.printStackTrace();
-                    }
+                    initializeSaveGame();
                 } else JOptionPane.showMessageDialog(SudokuGame.this, "저장된 게임 데이터가 없습니다.", "알림", JOptionPane.INFORMATION_MESSAGE);           
             }
         });
@@ -211,6 +168,8 @@ public class SudokuGame extends JFrame {
             public void windowClosing(WindowEvent e) {
                 int result = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION) {
+                    saveGameDataFile("gameData.sgd");
+                    saveSudokuToFile("userInput.sdg");
                     saveSudokuToFile("autoSave.sgd"); // 게임이 종료될 때 자동으로 저장
                     System.exit(0);
                 }
@@ -412,6 +371,8 @@ public class SudokuGame extends JFrame {
             public void actionPerformed(ActionEvent e) {
                 int exit = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (exit == JOptionPane.YES_OPTION) {
+                    saveGameDataFile("gameData.sgd");
+                    saveSudokuToFile("userInput.sdg");
                     saveSudokuToFile("autoSave.sgd");
                     System.exit(0);
                 }
@@ -497,7 +458,8 @@ public class SudokuGame extends JFrame {
                 rowEmpty[row]++;
             }
         }
-        saveSudokuToFile("inputSudoku.sgd");
+        saveSudokuToFile("inputSudoku.sgd"); // 더미 저장 데이터
+        saveSudokuToFile("solvedSudoku.sdg"); // 게임을 새로 생성할 때만 생성
     }
 
     private boolean solveSudoku(int[][] board) {
@@ -644,7 +606,7 @@ public class SudokuGame extends JFrame {
         return count >= 9;
     }
 
-    private void saveSudokuToFile(String fileName) {
+    private void saveGameDataFile(String fileName) {
         String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
@@ -654,25 +616,352 @@ public class SudokuGame extends JFrame {
             outputStream.write(rowEmptyCellLimit);
             outputStream.write(secondsPassed);
             outputStream.write(hintCount);
-            outputStream.write(System.lineSeparator().getBytes());
+        } catch (Exception e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
 
+    private int[] readSaveGameData(String fileName) {
+        int[] data = new int[4];
+
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File input = new File(filePath + fileName);
+        try (FileInputStream inputStream = new FileInputStream(input)) {            
+            int n;
+            for (int i = 0; i < 4; i++) {
+                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                    //무시함
+                }
+                data[i] = (byte)n;
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return null;
+        }
+
+        return data;
+    }
+
+    private void saveSudokuToFile(String fileName) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + fileName);
+        try (FileOutputStream outputStream = new FileOutputStream(input)) {
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
                     outputStream.write(puzzle[i][j]);
                 }
                 outputStream.write(System.lineSeparator().getBytes());
             }
-            
-            for (int i = 0; i < SIZE; i++) {
-                for (int j = 0; j < SIZE; j++) {
-                    outputStream.write(userInput[i][j]);
-                }
-                outputStream.write(System.lineSeparator().getBytes()); // 줄 바꿈
-            }
-
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
         }
+    }
+
+    private int[][] readSaveSudokuFile(String fileName) {
+        int board[][] =  new int[9][9];
+
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File input = new File(filePath + fileName);
+        try (FileInputStream inputStream = new FileInputStream(input)) {            
+            int n;
+            for (int row = 0; row < 9; row ++) {
+                for (int col = 0; col < 9; col++) {
+                    while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                        //무시함
+                    }
+                    if (n != -1) board[row][col] = (byte)n;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return null;
+        }
+        return board;
+    }
+
+    private void initializeSaveGame() {
+        setTitle("Sudoku Game");
+        setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // 기본 종료 동작 무시
+        setSize(800, 800);
+        setResizable(false);
+        Container c = getContentPane();
+
+        addWindowListener(new WindowAdapter() {
+            @Override
+            public void windowClosing(WindowEvent e) {
+                int result = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
+                if (result == JOptionPane.YES_OPTION) {
+                    saveGameDataFile("gameData.sgd");
+                    saveSudokuToFile("userInput.sdg");
+                    saveSudokuToFile("autoSave.sgd"); // 게임이 종료될 때 자동으로 저장
+                    System.exit(0);
+                }
+            }
+        });
+
+        JMenuBar menuBar = new JMenuBar();
+        setJMenuBar(menuBar);
+
+        JMenu fileMenu = new JMenu("메뉴");
+        menuBar.add(fileMenu); //프레임 상단에 메뉴 바
+
+        JMenuItem goToStartFrame = new JMenuItem("처음으로");
+        goToStartFrame.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                setVisible(false);
+                new SudokuGame();
+            }
+        });
+        fileMenu.add(goToStartFrame);
+    
+        JMenuItem newGameMenuItem = new JMenuItem("새 게임 시작(F5)");
+        newGameMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                resetGame();
+            }
+        });
+        
+        c.addKeyListener(new KeyAdapter() {
+            @Override
+            public void keyPressed(KeyEvent e) {
+                if (e.getKeyCode() == KeyEvent.VK_F5) {
+                    resetGame();
+                }
+            }
+        });
+        fileMenu.add(newGameMenuItem);
+
+        JMenu helpMenu = new JMenu("도움말");
+        menuBar.add(helpMenu);
+
+        JMenuItem aboutMenuItem = new JMenuItem("도움말");
+        aboutMenuItem.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                JOptionPane.showMessageDialog(SudokuGame.this, "이곳에 도움말을 표시합니다.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+            }
+        });
+        helpMenu.add(aboutMenuItem);
+        
+        JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
+        fields = new JTextField[SIZE][SIZE];
+        userInput = new int[SIZE][SIZE];
+        // '불러오기'에서 새로 추가된 부분 ...까지
+        puzzle = new int[SIZE][SIZE];
+        solution = new int[SIZE][SIZE];
+
+        solution = readSaveSudokuFile("solveSudoku.sdg");
+        userInput = readSaveSudokuFile("userInput.sdg");
+        puzzle = readSaveSudokuFile("autoSave.sdg");
+
+        int[] data = readSaveGameData("gameData.sdg");
+        totalEmptyCells = data[0];
+        rowEmptyCellLimit = data[1];
+        secondsPassed = data[2];
+        hintCount = data[3];
+        // ...
+
+        for (int i = 0; i < SIZE; i++) {
+            for (int j = 0; j < SIZE; j++) {
+              final int ROW = i;
+              final int COL = j;
+  
+              fields[i][j] = new JTextField();
+              if (puzzle[i][j] != 0) {
+                  fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
+                  fields[i][j].setEnabled(false);
+                  fields[i][j].setBackground(new Color(220, 220, 220));
+                  fields[i][j].setDisabledTextColor(Color.BLACK); // 비활성 상태일 때, 글자 색 설정
+              }
+              fields[i][j].setHorizontalAlignment(JTextField.CENTER); // 텍스트 중앙 정렬
+              fields[i][j].setFont(new Font("나눔", Font.BOLD, 20));
+              fields[i][j].getDocument().addDocumentListener(new DocumentListener() {
+                  // 1. 문자를 삽입하거나 지웠을 경우
+                  @Override
+                  public void insertUpdate(DocumentEvent e) {
+                      // 문자가 삽입되었을 때
+                      String input = fields[ROW][COL].getText();
+                      char c = input.charAt(0);
+                      if (input.length() > 0 && ( c >= '0' && c <= '9')) {
+                          puzzle[ROW][COL] = Integer.parseInt(input);
+                          userInput[ROW][COL] = puzzle[ROW][COL];
+                          updateCountLabels();
+                      } else {
+                          fields[ROW][COL].setText("");
+                      }
+                  }
+  
+                  @Override
+                  public void removeUpdate(DocumentEvent e) {
+                      // 문자가 삭제되었을 때
+                      puzzle[ROW][COL] = 0;
+                      userInput[ROW][COL] = puzzle[ROW][COL];
+                      updateCountLabels();
+                  }
+  
+                  @Override
+                  public void changedUpdate(DocumentEvent e) {
+                      // 스타일 등이 변경되었을 때, 사용하지 않음.
+                  }
+              });
+  
+              fields[i][j].addKeyListener(new KeyAdapter() {
+                  // 2. 공란에 BackSpace키를 입력했을 경우
+                  @Override
+                  public void keyTyped(KeyEvent e) {
+                      char c = e.getKeyChar();
+                      String input = String.valueOf(c); 
+                      if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
+                          e.consume();
+                      } else {
+                          // 9번 모두 입력했을 경우, 입력을 취소
+                          if (isNumberUsed(Integer.valueOf(input))) e.consume();
+                          else {
+                              puzzle[ROW][COL] = Integer.valueOf(input);
+                              updateCountLabels();
+                          }
+                      }
+                  }
+  
+                  // 3. 텍스트 필드에 포커스가 가 있어도, F5를 누르면 재시작
+                  @Override
+                  public void keyPressed(KeyEvent e) {
+                      if (e.getKeyCode() == KeyEvent.VK_F5) {
+                          resetGame();
+                      }
+                  }
+              });
+                  
+              panel.add(fields[i][j]);
+  
+              // 3x3 작은 스도쿠 경계에 진한 테두리 추가
+              if ((i + 1) % SMALL_SIZE == 0 && (j + 1) % SMALL_SIZE == 0) {
+                  fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 3, Color.BLACK));
+              } else if ((i + 1) % SMALL_SIZE == 0) {
+                  fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 1, Color.BLACK));
+              } else if ((j + 1) % SMALL_SIZE == 0) {
+                  fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 3, Color.BLACK));
+              } else {
+                  fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
+              }
+          }
+      }
+
+        JLabel[] number = new JLabel[10];
+        JPanel numberPanel = new JPanel(new GridLayout(1, 10));
+        JLabel label1 = new JLabel("숫자");
+        label1.setHorizontalAlignment(JLabel.CENTER);
+        label1.setFont(new Font("나눔", Font.BOLD, 20));
+        numberPanel.add(label1);
+        for (int i = 0; i < 9; i++) {
+            number[i] = new JLabel(String.valueOf(i + 1));
+            number[i].setHorizontalAlignment(JLabel.CENTER);
+            number[i].setFont(new Font("나눔", Font.BOLD, 20));
+            numberPanel.add(number[i]);
+        }
+        
+        countLabels = new JLabel[10];
+        JLabel label2 = new JLabel("사용");
+        label2.setHorizontalAlignment(JLabel.CENTER);
+        label2.setFont(new Font("나눔", Font.BOLD, 20));
+        JPanel countPanel = new JPanel(new GridLayout(1, 10));
+        countPanel.add(label2);
+        for (int i = 0; i < 9; i++) {
+            countLabels[i] = new JLabel("0");
+            countLabels[i].setHorizontalAlignment(JLabel.CENTER);
+            countLabels[i].setFont(new Font("나눔", Font.PLAIN, 20));
+            countPanel.add(countLabels[i]);
+        }
+        
+        JPanel panelSouth = new JPanel(new GridLayout(2, 1));
+        panelSouth.add(numberPanel);
+        panelSouth.add(countPanel);
+
+        JPanel buttonPanel = new JPanel(new FlowLayout(FlowLayout.CENTER, 100, 10)); 
+        JButton hintButton = new JButton("힌트");
+        hintButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (hintCount < 10) {
+                    int hint = JOptionPane.showConfirmDialog(SudokuGame.this, "힌트를 사용하시겠습니까?\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.YES_NO_OPTION);
+                    if (hint == JOptionPane.YES_OPTION) applyHint();
+                } else {
+                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
+        JButton memoButton = new JButton("메모");
+        memoButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                // 메모 기능 구현
+            }
+        });
+
+        JButton exitButton = new JButton("종료");
+        exitButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                int exit = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
+                if (exit == JOptionPane.YES_OPTION) {
+                    saveGameDataFile("gameData.sgd");
+                    saveSudokuToFile("userInput.sdg");
+                    saveSudokuToFile("autoSave.sgd");
+                    System.exit(0);
+                }
+            }
+        });
+
+        timeLabel = new JLabel("00:00");
+        timeLabel.setHorizontalAlignment(SwingConstants.CENTER);
+        timeLabel.setFont(new Font("나눔", Font.BOLD, 20));
+    
+        secondsPassed = 0;
+        timer = new Timer(1000, new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                secondsPassed++;
+                updateTimeLabel();
+            }
+        });
+        timer.start();
+
+        buttonPanel.add(timeLabel);
+        buttonPanel.add(hintButton);
+        buttonPanel.add(memoButton);
+        buttonPanel.add(exitButton);
+
+        // 가끔 F5 키를 눌러도 재시작이 안 되는 오류 수정
+        JButton[] buttons = {hintButton, memoButton, exitButton};
+
+        for (JButton button : buttons) {
+            button.addFocusListener(new FocusAdapter() {
+                @Override
+                public void focusGained(FocusEvent e) {
+                    button.transferFocus(); // 포커스를 잃도록 설정
+                }
+            });
+        }
+
+        JPanel UI_Panel = new JPanel(new GridLayout(2, 1));
+        UI_Panel.add(panelSouth);
+        UI_Panel.add(buttonPanel);
+
+        //패널 부착
+        c.add(panel);
+        c.add(UI_Panel, BorderLayout.SOUTH);
+
+        c.setFocusable(true);
+        c.requestFocus();
+
+        updateCountLabels();
+        setLocationRelativeTo(null);
+        setVisible(true);
     }
 
     public static void main(String[] args) {
