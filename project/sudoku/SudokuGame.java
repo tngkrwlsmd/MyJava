@@ -11,6 +11,7 @@ public class SudokuGame extends JFrame {
     private JTextField[][] fields; // 스도쿠 보드의 각 셀에 대한 JTextField 배열
     private int[][] solution; // 완전한 스도쿠 솔루션을 저장하는 배열
     private int[][] puzzle; // 사용자가 풀어야 할 스도쿠 퍼즐을 저장하는 배열
+    private int[][] first; // 초기 입력된 스도쿠
     private JLabel[] countLabels; // 각 숫자 카운트를 표시하는 레이블 배열
     private int[][] userInput; // 사용자가 입력한 숫자를 저장하는 배열
 
@@ -438,10 +439,12 @@ public class SudokuGame extends JFrame {
         solveSudoku(solution);
     
         puzzle = new int[SIZE][SIZE];
+        first = new int[SIZE][SIZE];
         Random random = new Random();
  
         for (int i = 0; i < SIZE; i++) {
             for (int j = 0; j < SIZE; j++) {
+                first[i][j] = solution[i][j];
                 puzzle[i][j] = solution[i][j];
             }
         }
@@ -453,6 +456,7 @@ public class SudokuGame extends JFrame {
             int row = random.nextInt(SIZE);
             int col = random.nextInt(SIZE);
             if (puzzle[row][col] != 0 && rowEmpty[row] < rowEmptyCellLimit) {
+                first[row][col] = 0;
                 puzzle[row][col] = 0; // 빈 셀로 변경
                 count++;
                 rowEmpty[row]++;
@@ -460,6 +464,7 @@ public class SudokuGame extends JFrame {
         }
         saveSudokuToFile("inputSudoku.sgd"); // 더미 저장 데이터
         saveSudokuToFile("solvedSudoku.sdg"); // 게임을 새로 생성할 때만 생성
+        saveSudokuToFile("firstSudoku.sdg"); // 초기 입력된 데이터들을 저장
     }
 
     private boolean solveSudoku(int[][] board) {
@@ -752,9 +757,11 @@ public class SudokuGame extends JFrame {
         userInput = new int[SIZE][SIZE];
         // '불러오기'에서 새로 추가된 부분 ...까지
         puzzle = new int[SIZE][SIZE];
+        first = new int[SIZE][SIZE];
         solution = new int[SIZE][SIZE];
 
         solution = readSaveSudokuFile("solveSudoku.sdg");
+        first = readSaveSudokuFile("firstSudoku.sdg");
         userInput = readSaveSudokuFile("userInput.sdg");
         puzzle = readSaveSudokuFile("autoSave.sdg");
 
@@ -771,7 +778,7 @@ public class SudokuGame extends JFrame {
               final int COL = j;
   
               fields[i][j] = new JTextField();
-              if (puzzle[i][j] != 0) {
+              if (first[i][j] != 0) {
                   fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
                   fields[i][j].setEnabled(false);
                   fields[i][j].setBackground(new Color(220, 220, 220));
