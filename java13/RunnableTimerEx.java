@@ -2,10 +2,10 @@ package java13;
 import javax.swing.*;
 import java.awt.*;
 
-class TimerRunnable implements Runnable {
+class TimerRunnableClass implements Runnable {
   private JLabel timerLabel;
 
-  public TimerRunnable(JLabel timeLabel) {
+  public TimerRunnableClass(JLabel timeLabel) {
     this.timerLabel = timeLabel;
   }
 
@@ -35,7 +35,7 @@ public class RunnableTimerEx extends JFrame {
     timerLabel.setFont(new Font("Gothic", Font.ITALIC, 80));
     c.add(timerLabel);
 
-    TimerRunnable runnable = new TimerRunnable(timerLabel);
+    TimerRunnableClass runnable = new TimerRunnableClass(timerLabel);
     Thread th = new Thread(runnable);
 
     setSize(250, 150);
