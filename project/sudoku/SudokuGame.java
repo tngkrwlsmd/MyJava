@@ -219,7 +219,7 @@ public class SudokuGame extends JFrame {
         aboutMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(SudokuGame.this, "이곳에 도움말을 표시합니다.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(SudokuGame.this, "같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하시면 됩니다. 너무 어렵다 싶으면 힌트를 사용하세요.", "도움말", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         helpMenu.add(aboutMenuItem);
@@ -549,12 +549,6 @@ public class SudokuGame extends JFrame {
         }
 
         int hintCellCount = hintCells.size();
-
-        if (hintCellCount == 0) {
-            JOptionPane.showMessageDialog(SudokuGame.this, "더 이상 힌트를 적용할 수 없습니다.", "힌트 사용 불가", JOptionPane.INFORMATION_MESSAGE);
-            return;
-        }
-
         int randomIndex = random.nextInt(hintCellCount);
         Point selectedCell = hintCells.get(randomIndex);
         int row = selectedCell.x;
@@ -759,7 +753,7 @@ public class SudokuGame extends JFrame {
         aboutMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(SudokuGame.this, "이곳에 도움말을 표시합니다.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+                JOptionPane.showMessageDialog(SudokuGame.this, "같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하시면 됩니다. 너무 어렵다 싶으면 힌트를 사용하세요.", "도움말", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         helpMenu.add(aboutMenuItem);
