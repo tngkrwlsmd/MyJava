@@ -138,7 +138,7 @@ public class SudokuGame extends JFrame {
         buttonSet.add(loadButton);
         buttonSet.add(exitButton);
 
-        JLabel developer = new JLabel("제작자 : 전영민");
+        JLabel developer = new JLabel("제작자 : ㅇㅇ");
         developer.setFont(new Font("나눔", Font.BOLD, 20));
         developer.setHorizontalAlignment(JLabel.CENTER);
 
@@ -170,8 +170,9 @@ public class SudokuGame extends JFrame {
                 int result = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION) {
                     saveGameDataFile("gameData.sgd");
-                    saveSudokuToFile("userInput.sgd");
-                    saveSudokuToFile("autoSave.sgd"); // 게임이 종료될 때 자동으로 저장
+                    saveSudokuToFile("firstSudoku.sgd", first);
+                    saveSudokuToFile("userInput.sgd", userInput);
+                    saveSudokuToFile("autoSave.sgd", puzzle); // 게임이 종료될 때 자동으로 저장
                     System.exit(0);
                 }
             }
@@ -349,11 +350,11 @@ public class SudokuGame extends JFrame {
         hintButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (hintCount < 10) {
+                if (hintCount >= 0 && hintCount < 10) {
                     int hint = JOptionPane.showConfirmDialog(SudokuGame.this, "힌트를 사용하시겠습니까?\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.YES_NO_OPTION);
                     if (hint == JOptionPane.YES_OPTION) applyHint();
                 } else {
-                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!", "힌트", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
@@ -373,8 +374,9 @@ public class SudokuGame extends JFrame {
                 int exit = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (exit == JOptionPane.YES_OPTION) {
                     saveGameDataFile("gameData.sgd");
-                    saveSudokuToFile("userInput.sgd");
-                    saveSudokuToFile("autoSave.sgd");
+                    saveSudokuToFile("firstSudoku.sgd", first);
+                    saveSudokuToFile("userInput.sgd", userInput);
+                    saveSudokuToFile("autoSave.sgd", puzzle);
                     System.exit(0);
                 }
             }
@@ -462,9 +464,8 @@ public class SudokuGame extends JFrame {
                 rowEmpty[row]++;
             }
         }
-        saveSudokuToFile("inputSudoku.sgd"); // 더미 저장 데이터
-        saveSudokuToFile("solveSudoku.sgd"); // 게임을 새로 생성할 때만 생성
-        saveSudokuToFile("firstSudoku.sgd"); // 초기 입력된 데이터들을 저장
+        saveSudokuToFile("inputSudoku.sgd", puzzle); // 더미 저장 데이터
+        saveSudokuToFile("solveSudoku.sgd", solution); // 게임을 새로 생성할 때만 생성
     }
 
     private boolean solveSudoku(int[][] board) {
@@ -560,6 +561,7 @@ public class SudokuGame extends JFrame {
         int col = selectedCell.y;
 
         puzzle[row][col] = solution[row][col];
+        first[row][col] = solution[row][col]; // 불러올 때, 필드를 비활성화 하기 위함
         hintCount++;
         updateFields();
         fields[row][col].setBackground(new Color(220, 220, 220));
@@ -647,7 +649,7 @@ public class SudokuGame extends JFrame {
         return data;
     }
 
-    private void saveSudokuToFile(String fileName) {
+    private void saveSudokuToFile(String fileName, int[][] board) {
         String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
         File directory = new File(filePath);
         if (!directory.exists()) directory.mkdirs();
@@ -655,7 +657,7 @@ public class SudokuGame extends JFrame {
         try (FileOutputStream outputStream = new FileOutputStream(input)) {
             for (int i = 0; i < SIZE; i++) {
                 for (int j = 0; j < SIZE; j++) {
-                    outputStream.write(puzzle[i][j]);
+                    outputStream.write(board[i][j]);
                 }
                 outputStream.write(System.lineSeparator().getBytes());
             }
@@ -708,8 +710,9 @@ public class SudokuGame extends JFrame {
                 int result = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (result == JOptionPane.YES_OPTION) {
                     saveGameDataFile("gameData.sgd");
-                    saveSudokuToFile("userInput.sgd");
-                    saveSudokuToFile("autoSave.sgd"); // 게임이 종료될 때 자동으로 저장
+                    saveSudokuToFile("firstSudoku.sgd", first);
+                    saveSudokuToFile("userInput.sgd", userInput);
+                    saveSudokuToFile("autoSave.sgd", puzzle); // 게임이 종료될 때 자동으로 저장
                     System.exit(0);
                 }
             }
@@ -788,10 +791,12 @@ public class SudokuGame extends JFrame {
   
               fields[i][j] = new JTextField();
               if (first[i][j] != 0) {
-                  fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
+                  fields[i][j].setText(String.valueOf(first[i][j])); // 초기에 표시되는 숫자 설정
                   fields[i][j].setEnabled(false);
                   fields[i][j].setBackground(new Color(220, 220, 220));
                   fields[i][j].setDisabledTextColor(Color.BLACK); // 비활성 상태일 때, 글자 색 설정
+              } else if (first[i][j] == 0 && puzzle[i][j] != 0) {
+                fields[i][j].setText(String.valueOf(puzzle[i][j]));
               }
               fields[i][j].setHorizontalAlignment(JTextField.CENTER); // 텍스트 중앙 정렬
               fields[i][j].setFont(new Font("나눔", Font.BOLD, 20));
@@ -902,11 +907,11 @@ public class SudokuGame extends JFrame {
         hintButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (hintCount < 10) {
+                if (hintCount >=0 && hintCount < 10) {
                     int hint = JOptionPane.showConfirmDialog(SudokuGame.this, "힌트를 사용하시겠습니까?\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.YES_NO_OPTION);
                     if (hint == JOptionPane.YES_OPTION) applyHint();
                 } else {
-                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!\n사용 횟수: " + hintCount + " / 10", "힌트", JOptionPane.INFORMATION_MESSAGE);
+                    JOptionPane.showMessageDialog(SudokuGame.this, "힌트를 모두 사용하셨습니다!", "힌트", JOptionPane.INFORMATION_MESSAGE);
                 }
             }
         });
@@ -926,8 +931,9 @@ public class SudokuGame extends JFrame {
                 int exit = JOptionPane.showConfirmDialog(SudokuGame.this, "정말로 종료하시겠습니까?\n종료시 게임은 자동 저장됩니다.", "종료 확인", JOptionPane.YES_NO_OPTION);
                 if (exit == JOptionPane.YES_OPTION) {
                     saveGameDataFile("gameData.sgd");
-                    saveSudokuToFile("userInput.sgd");
-                    saveSudokuToFile("autoSave.sgd");
+                    saveSudokuToFile("firstSudoku.sgd", first);
+                    saveSudokuToFile("userInput.sgd", userInput);
+                    saveSudokuToFile("autoSave.sgd", puzzle);
                     System.exit(0);
                 }
             }
