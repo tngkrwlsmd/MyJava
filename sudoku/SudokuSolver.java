@@ -1,4 +1,4 @@
-package project.sudoku;
+package sudoku;
 import java.io.*;
 import java.util.Arrays;
 

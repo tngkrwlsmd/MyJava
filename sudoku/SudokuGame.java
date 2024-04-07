@@ -1,4 +1,4 @@
-package project.sudoku;
+package sudoku;
 import javax.swing.*;
 import javax.swing.Timer;
 import javax.swing.event.*;
