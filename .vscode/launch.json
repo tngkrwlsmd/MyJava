@@ -6,6 +6,76 @@
   "configurations": [
     {
       "type": "java",
+      "name": "java12_62",
+      "request": "launch",
+      "mainClass": "java12.java12_62.java12_62",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java12_61",
+      "request": "launch",
+      "mainClass": "java12.java12_61.java12_61",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java11_7",
+      "request": "launch",
+      "mainClass": "java11.java11_7.java11_7",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java11_6",
+      "request": "launch",
+      "mainClass": "java11.java11_6.java11_6",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java11_5",
+      "request": "launch",
+      "mainClass": "java11.java11_5.java11_5",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java11_2",
+      "request": "launch",
+      "mainClass": "java11.java11_2.java11_2",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java11_1",
+      "request": "launch",
+      "mainClass": "java11.java11_1.java11_1",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java12_8",
+      "request": "launch",
+      "mainClass": "java12.java12_8.java12_8",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java12_7",
+      "request": "launch",
+      "mainClass": "java12.java12_7.java12_7",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "java12_7$Pan",
+      "request": "launch",
+      "mainClass": "java12.java12_7.java12_7$Pan",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
       "name": "SudokuGame",
       "request": "launch",
       "mainClass": "sudoku.SudokuGame",
