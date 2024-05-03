@@ -225,6 +225,8 @@ public class SudokuGame extends JFrame {
         helpMenu.add(aboutMenuItem);
 
         JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
+        JPanel[][] fieldsPanel = new JPanel[SIZE][SIZE];
+
         fields = new JTextField[SIZE][SIZE];
         userInput = new int[SIZE][SIZE];
         generateSudoku(); // 스도쿠 퍼즐 생성
@@ -299,9 +301,27 @@ public class SudokuGame extends JFrame {
                     }
                 }
             });
-                
-            panel.add(fields[i][j]);
+            
+            CardLayout card = new CardLayout();
+            fieldsPanel[i][j] = new JPanel(card);
 
+            JPanel toggle1 = new JPanel();
+            JPanel toggle2 = new JPanel(new GridLayout(SIZE, SIZE));
+            JLabel[][] num = new JLabel[SMALL_SIZE][SMALL_SIZE];
+
+            toggle1.add(fields[i][j]);
+            for (int row = 0; row < SMALL_SIZE; row++) {
+                for (int col = 0; col < SMALL_SIZE; col++) {
+                    int value = row * 3 + col + 1;
+                    num[row][col] = new JLabel(Integer.toString(value));
+                    toggle2.add(num[row][col]);
+                }
+            }
+
+            fieldsPanel[i][j].add(toggle1, "input");
+            fieldsPanel[i][j].add(toggle2, "memo");
+            panel.add(fieldsPanel[i][j]);
+ 
             // 3x3 작은 스도쿠 경계에 진한 테두리 추가
             if ((i + 1) % SMALL_SIZE == 0 && (j + 1) % SMALL_SIZE == 0) {
                 fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 3, Color.BLACK));
@@ -363,7 +383,33 @@ public class SudokuGame extends JFrame {
         memoButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 메모 기능 구현
+                if (memoButton.getText().equals("메모")) memoButton.setText("해제");
+                else memoButton.setText("메모");
+
+                for (int i = 0; i < SIZE; i++) {
+                    for (int j = 0; j < SIZE; j++) {
+                        final int I = i;
+                        final int J = j;
+                        fields[i][j].setEnabled(false);
+                        fields[I][J].addMouseListener(new MouseAdapter() {
+                            @Override
+                            public void mouseClicked(MouseEvent e) {
+                                if (puzzle[I][J] == 0) {
+                                    if (fields[I][J].getBackground().equals(Color.WHITE)) fields[I][J].setBackground(new Color(191, 228, 255));
+                                    else fields[I][J].setBackground(Color.WHITE);
+                                }
+                            }
+                        });
+
+                        fields[I][J].addKeyListener(new KeyAdapter() {
+                            @Override
+                            public void keyTyped(KeyEvent e) {
+                                char c = e.getKeyChar();
+                                if (!(c >= '1' && c <= '9')) e.consume();
+                            }
+                        });
+                    }
+                }
             }
         });
 
