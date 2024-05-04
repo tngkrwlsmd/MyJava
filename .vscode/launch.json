@@ -6,6 +6,13 @@
   "configurations": [
     {
       "type": "java",
+      "name": "SudokuSolver",
+      "request": "launch",
+      "mainClass": "sudoku.SudokuSolver",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
       "name": "java12_62",
       "request": "launch",
       "mainClass": "java12.java12_62.java12_62",

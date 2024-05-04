@@ -221,7 +221,9 @@ public class SudokuGame extends JFrame {
         aboutMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(SudokuGame.this, "같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하시면 됩니다. 너무 어렵다 싶으면 힌트를 사용하세요.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+                String message = "1. 같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하세요. \n2. 너무 어렵다 싶으면 힌트를 사용하세요! 최대 10번까지 사용이 가능합니다." + 
+                "\n3. 메모 버튼을 클릭 후, 1 ~ 9 까지의 숫자를 메모할 수 있습니다. 메모를 지우려면 똑같은 숫자를 다시 누르세요.";
+                JOptionPane.showMessageDialog(SudokuGame.this, message, "도움말", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         helpMenu.add(aboutMenuItem);
@@ -402,6 +404,30 @@ public class SudokuGame extends JFrame {
             }
         });
 
+        JButton checkSudokuButton = new JButton("검사");
+        checkSudokuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (pull()) {
+                    boolean success = true;
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            int num = puzzle[i][j];
+                            if (num != 0 && !isValid(puzzle, i, j, num)) {
+                                success = false;
+                                break;
+                            }
+                        }
+                        if (!success) break;
+                    }
+                    if (success) JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되었습니다!", "성공!", JOptionPane.INFORMATION_MESSAGE);
+                    else JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되지 않았습니다!\n다시 작성해주세요!", "실패!", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 모두 작성되지 않았습니다!\n모두 채우고나서 검사해주세요!", "실패!", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
         JButton exitButton = new JButton("종료");
         exitButton.addActionListener(new ActionListener() {
             @Override
@@ -435,10 +461,11 @@ public class SudokuGame extends JFrame {
         buttonPanel.add(timeLabel);
         buttonPanel.add(hintButton);
         buttonPanel.add(memoButton);
+        buttonPanel.add(checkSudokuButton);
         buttonPanel.add(exitButton);
 
         // 가끔 F5 키를 눌러도 재시작이 안 되는 오류 수정
-        JButton[] buttons = {hintButton, memoButton, exitButton};
+        JButton[] buttons = {hintButton, memoButton, checkSudokuButton, exitButton};
 
         for (JButton button : buttons) {
             button.addFocusListener(new FocusAdapter() {
@@ -528,7 +555,9 @@ public class SudokuGame extends JFrame {
         aboutMenuItem.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                JOptionPane.showMessageDialog(SudokuGame.this, "같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하시면 됩니다. 너무 어렵다 싶으면 힌트를 사용하세요.", "도움말", JOptionPane.INFORMATION_MESSAGE);
+                String message = "1. 같은 줄과 작은 3x3 격자판 안에 똑같은 숫자가 없게 배치하세요. \n2. 너무 어렵다 싶으면 힌트를 사용하세요! 최대 10번까지 사용이 가능합니다." + 
+                "\n3. 메모 버튼을 클릭 후, 1 ~ 9 까지의 숫자를 메모할 수 있습니다. 메모를 지우려면 똑같은 숫자를 다시 누르세요.";
+                JOptionPane.showMessageDialog(SudokuGame.this, message, "도움말", JOptionPane.INFORMATION_MESSAGE);
             }
         });
         helpMenu.add(aboutMenuItem);
@@ -727,6 +756,30 @@ public class SudokuGame extends JFrame {
             }
         });
 
+        JButton checkSudokuButton = new JButton("검사");
+        checkSudokuButton.addActionListener(new ActionListener() {
+            @Override
+            public void actionPerformed(ActionEvent e) {
+                if (pull()) {
+                    boolean success = true;
+                    for (int i = 0; i < 9; i++) {
+                        for (int j = 0; j < 9; j++) {
+                            int num = puzzle[i][j];
+                            if (num != 0 && !isValid(puzzle, i, j, num)) {
+                                success = false;
+                                break;
+                            }
+                        }
+                        if (!success) break;
+                    }
+                    if (success) JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되었습니다!", "성공!", JOptionPane.INFORMATION_MESSAGE);
+                    else JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되지 않았습니다!\n다시 작성해주세요!", "실패!", JOptionPane.INFORMATION_MESSAGE);
+                } else {
+                    JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 모두 작성되지 않았습니다!\n모두 채우고나서 검사해주세요!", "실패!", JOptionPane.INFORMATION_MESSAGE);
+                }
+            }
+        });
+
         JButton exitButton = new JButton("종료");
         exitButton.addActionListener(new ActionListener() {
             @Override
@@ -760,10 +813,11 @@ public class SudokuGame extends JFrame {
         buttonPanel.add(timeLabel);
         buttonPanel.add(hintButton);
         buttonPanel.add(memoButton);
+        buttonPanel.add(checkSudokuButton);
         buttonPanel.add(exitButton);
 
         // 가끔 F5 키를 눌러도 재시작이 안 되는 오류 수정
-        JButton[] buttons = {hintButton, memoButton, exitButton};
+        JButton[] buttons = {hintButton, memoButton, checkSudokuButton, exitButton};
 
         for (JButton button : buttons) {
             button.addFocusListener(new FocusAdapter() {
@@ -781,6 +835,22 @@ public class SudokuGame extends JFrame {
         //패널 부착
         c.add(panel);
         c.add(UI_Panel, BorderLayout.SOUTH);
+
+        if (pull()) {
+            boolean success = true;
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    int num = puzzle[i][j];
+                    if (num != 0 && isValid(puzzle, i, j, num)) {
+                        success = false;
+                        break;
+                    }
+                }
+                if (!success) break;
+            }
+            if (success) JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되었습니다!", "성공!", JOptionPane.INFORMATION_MESSAGE);
+            else JOptionPane.showMessageDialog(SudokuGame.this, "스도쿠가 알맞게 작성되지않았습니다!\n다시 작성해주세요!", "실패!", JOptionPane.INFORMATION_MESSAGE);
+        }
 
         c.setFocusable(true);
         c.requestFocus();
@@ -845,6 +915,15 @@ public class SudokuGame extends JFrame {
         }
         saveSudokuToFile("inputSudoku.sgd", puzzle); // 더미 저장 데이터
         saveSudokuToFile("solveSudoku.sgd", solution); // 게임을 새로 생성할 때만 생성
+    }
+
+    private boolean pull() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (puzzle[i][j] == 0) return false;
+            }
+        }
+        return true;
     }
 
     private boolean isNumberUsed(int number) {
