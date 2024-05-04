@@ -15,8 +15,9 @@ public class SudokuGame extends JFrame {
     private JLabel[] countLabels; // 각 숫자 카운트를 표시하는 레이블 배열
     private int[][] userInput; // 사용자가 입력한 숫자를 저장하는 배열
 
-    private static final int SIZE = 9; // 스도쿠 보드의 크기
-    private static final int SMALL_SIZE = 3; // 작은 3x3 그룹의 크기
+    private JLabel[][][] memoFields; // 각 셀의 메모를 저장하는 필드
+    private boolean[][][] memoVisible;
+    private boolean memoModeEnabled;
 
     private int totalEmptyCells; // 스도쿠의 난이도를 설정하는 변수
     private int rowEmptyCellLimit; // 같은 행에 삽입되는 숫자를 제한
@@ -173,6 +174,7 @@ public class SudokuGame extends JFrame {
                     saveSudokuToFile("firstSudoku.sgd", first);
                     saveSudokuToFile("userInput.sgd", userInput);
                     saveSudokuToFile("autoSave.sgd", puzzle); // 게임이 종료될 때 자동으로 저장
+                    saveSudokuMemoFile("memoFile.sgd");
                     System.exit(0);
                 }
             }
@@ -224,19 +226,40 @@ public class SudokuGame extends JFrame {
         });
         helpMenu.add(aboutMenuItem);
 
-        JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
-        JPanel[][] fieldsPanel = new JPanel[SIZE][SIZE];
-
-        fields = new JTextField[SIZE][SIZE];
-        userInput = new int[SIZE][SIZE];
+        JPanel panel = new JPanel(new GridLayout(9, 9));
+        JPanel[][] memoPanel = new JPanel[9][9];
+        KeyListener[][] keyListeners = new KeyListener[9][9];
+        KeyListener[][] memoKeyListeners = new KeyListener[9][9];
+        
+        fields = new JTextField[9][9];
+        userInput = new int[9][9];
+        memoFields = new JLabel[9][9][9];
+        memoVisible = new boolean[9][9][9];
         generateSudoku(); // 스도쿠 퍼즐 생성
 
-        for (int i = 0; i < SIZE; i++) {
-          for (int j = 0; j < SIZE; j++) {
+        for (int i = 0; i < 9; i++) {
+          for (int j = 0; j < 9; j++) {
             final int ROW = i;
             final int COL = j;
 
             fields[i][j] = new JTextField();
+            memoPanel[i][j] = new JPanel(new GridLayout(3, 3));
+            memoPanel[i][j].setOpaque(false);
+
+            for (int k = 0; k < 9; k++) {
+                memoFields[i][j][k] = new JLabel();
+                memoFields[i][j][k].setFont(new Font("나눔", Font.PLAIN, 12));
+                memoFields[i][j][k].setForeground(Color.GRAY);
+                memoFields[i][j][k].setText(" " + Integer.toString(k + 1));
+                memoFields[i][j][k].setVisible(false);
+                memoPanel[i][j].add(memoFields[i][j][k]);
+            }
+
+            JPanel overlayPanel = new JPanel();
+            overlayPanel.setLayout(new OverlayLayout(overlayPanel));
+            overlayPanel.add(memoPanel[i][j]);
+            overlayPanel.add(fields[i][j]);
+
             if (puzzle[i][j] != 0) {
                 fields[i][j].setText(String.valueOf(puzzle[i][j])); // 초기에 표시되는 숫자 설정
                 fields[i][j].setEnabled(false);
@@ -275,7 +298,7 @@ public class SudokuGame extends JFrame {
                 }
             });
 
-            fields[i][j].addKeyListener(new KeyAdapter() {
+            keyListeners[i][j] = new KeyAdapter() {
                 // 2. 공란에 BackSpace키를 입력했을 경우
                 @Override
                 public void keyTyped(KeyEvent e) {
@@ -286,6 +309,7 @@ public class SudokuGame extends JFrame {
                     } else {
                         // 9번 모두 입력했을 경우, 입력을 취소
                         if (isNumberUsed(Integer.valueOf(input))) e.consume();
+                        else if (memoModeEnabled) e.consume(); // 메모 상태일 때는 입력하면 안 됨
                         else {
                             puzzle[ROW][COL] = Integer.valueOf(input);
                             updateCountLabels();
@@ -300,34 +324,17 @@ public class SudokuGame extends JFrame {
                         resetGame();
                     }
                 }
-            });
-            
-            CardLayout card = new CardLayout();
-            fieldsPanel[i][j] = new JPanel(card);
+            };
+            fields[i][j].addKeyListener(keyListeners[i][j]);
 
-            JPanel toggle1 = new JPanel();
-            JPanel toggle2 = new JPanel(new GridLayout(SIZE, SIZE));
-            JLabel[][] num = new JLabel[SMALL_SIZE][SMALL_SIZE];
-
-            toggle1.add(fields[i][j]);
-            for (int row = 0; row < SMALL_SIZE; row++) {
-                for (int col = 0; col < SMALL_SIZE; col++) {
-                    int value = row * 3 + col + 1;
-                    num[row][col] = new JLabel(Integer.toString(value));
-                    toggle2.add(num[row][col]);
-                }
-            }
-
-            fieldsPanel[i][j].add(toggle1, "input");
-            fieldsPanel[i][j].add(toggle2, "memo");
-            panel.add(fieldsPanel[i][j]);
+            panel.add(overlayPanel);
  
             // 3x3 작은 스도쿠 경계에 진한 테두리 추가
-            if ((i + 1) % SMALL_SIZE == 0 && (j + 1) % SMALL_SIZE == 0) {
+            if ((i + 1) % 3 == 0 && (j + 1) % 3 == 0) {
                 fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 3, Color.BLACK));
-            } else if ((i + 1) % SMALL_SIZE == 0) {
+            } else if ((i + 1) % 3 == 0) {
                 fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 1, Color.BLACK));
-            } else if ((j + 1) % SMALL_SIZE == 0) {
+            } else if ((j + 1) % 3 == 0) {
                 fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 3, Color.BLACK));
             } else {
                 fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
@@ -383,33 +390,15 @@ public class SudokuGame extends JFrame {
         memoButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                if (memoButton.getText().equals("메모")) memoButton.setText("해제");
-                else memoButton.setText("메모");
-
-                for (int i = 0; i < SIZE; i++) {
-                    for (int j = 0; j < SIZE; j++) {
-                        final int I = i;
-                        final int J = j;
-                        fields[i][j].setEnabled(false);
-                        fields[I][J].addMouseListener(new MouseAdapter() {
-                            @Override
-                            public void mouseClicked(MouseEvent e) {
-                                if (puzzle[I][J] == 0) {
-                                    if (fields[I][J].getBackground().equals(Color.WHITE)) fields[I][J].setBackground(new Color(191, 228, 255));
-                                    else fields[I][J].setBackground(Color.WHITE);
-                                }
-                            }
-                        });
-
-                        fields[I][J].addKeyListener(new KeyAdapter() {
-                            @Override
-                            public void keyTyped(KeyEvent e) {
-                                char c = e.getKeyChar();
-                                if (!(c >= '1' && c <= '9')) e.consume();
-                            }
-                        });
-                    }
+                if (memoButton.getText().equals("메모")) {
+                    memoModeEnabled = true;
+                    memoButton.setText("해제");
                 }
+                else {
+                    memoModeEnabled = false;
+                    memoButton.setText("메모");
+                }
+                updateMemoField(keyListeners, memoKeyListeners);
             }
         });
 
@@ -423,6 +412,7 @@ public class SudokuGame extends JFrame {
                     saveSudokuToFile("firstSudoku.sgd", first);
                     saveSudokuToFile("userInput.sgd", userInput);
                     saveSudokuToFile("autoSave.sgd", puzzle);
+                    saveSudokuMemoFile("memoFile.sgd");
                     System.exit(0);
                 }
             }
@@ -475,268 +465,6 @@ public class SudokuGame extends JFrame {
         setVisible(true);
     }
 
-    private void updateTimeLabel() {
-        int minutes = secondsPassed / 60;
-        int seconds = secondsPassed % 60;
-        String timeString = String.format("%02d:%02d", minutes, seconds);
-        timeLabel.setText(timeString);
-    }
-    
-    private void generateSudoku() {
-        solution = new int[SIZE][SIZE];
-        solveSudoku(solution);
-    
-        puzzle = new int[SIZE][SIZE];
-        first = new int[SIZE][SIZE];
-        Random random = new Random();
- 
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                first[i][j] = solution[i][j];
-                puzzle[i][j] = solution[i][j];
-            }
-        }
-    
-        // count : 빈 셀의 개수
-        int count = 0;
-        int[] rowEmpty = new int[9];
-        while (count < totalEmptyCells) {
-            int row = random.nextInt(SIZE);
-            int col = random.nextInt(SIZE);
-            if (puzzle[row][col] != 0 && rowEmpty[row] < rowEmptyCellLimit) {
-                first[row][col] = 0;
-                puzzle[row][col] = 0; // 빈 셀로 변경
-                count++;
-                rowEmpty[row]++;
-            }
-        }
-        saveSudokuToFile("inputSudoku.sgd", puzzle); // 더미 저장 데이터
-        saveSudokuToFile("solveSudoku.sgd", solution); // 게임을 새로 생성할 때만 생성
-    }
-
-    private boolean solveSudoku(int[][] board) {
-        Random random = new Random();
-        for (int row = 0; row < SIZE; row++) {
-            for (int col = 0; col < SIZE; col++) {
-                // numbers를 랜덤으로 섞어 백트래킹
-                if (board[row][col] == 0) {
-                    int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
-                    shuffleArray(numbers, random);
-                    for (int num : numbers) {
-                        if (isValid(board, row, col, num)) {
-                            board[row][col] = num;
-                            if (solveSudoku(board)) {
-                                return true;
-                            }
-                            board[row][col] = 0;
-                        }
-                    }
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-    
-    // 배열을 무작위로 섞는 메소드
-    private void shuffleArray(int[] array, Random random) {
-        for (int i = array.length - 1; i > 0; i--) {
-            int index = random.nextInt(i + 1);
-            int temp = array[index];
-            array[index] = array[i];
-            array[i] = temp;
-        }
-    }
-    
-
-    private boolean isValid(int[][] board, int row, int col, int num) {
-        // 행과 열 검사
-        for (int i = 0; i < SIZE; i++) {
-            if (board[row][i] == num || board[i][col] == num) {
-                return false;
-            }
-        }
-        // 작은 3x3 그룹 검사
-        int startRow = row - row % SMALL_SIZE;
-        int startCol = col - col % SMALL_SIZE;
-        for (int i = startRow; i < startRow + SMALL_SIZE; i++) {
-            for (int j = startCol; j < startCol + SMALL_SIZE; j++) {
-                if (board[i][j] == num) {
-                    return false;
-                }
-            }
-        }
-        return true;
-    }
-
-    private void resetGame() {
-        generateSudoku();
-        updateFields();
-        secondsPassed = 0;
-        hintCount = 0;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                fields[i][j].setBackground(Color.WHITE); // 배경색을 모두 흰색으로 초기화
-                if (puzzle[i][j] != 0) fields[i][j].setBackground(new Color(220, 220, 220)); // 그 중 비어있지 않은 부분은 다시 회색으로 색칠
-            }
-        }
-    }
-
-    private void applyHint() {
-        Random random = new Random();
-        ArrayList<Point> hintCells = new ArrayList<>(); // Point: GridLayout에서 셀의 인덱스에 대한 정보를 가짐
-
-        for (int row = 0; row < SIZE; row++) {
-            for (int col = 0; col < SIZE; col++) {
-                if (puzzle[row][col] == 0 || userInput[row][col] != solution[row][col]) {
-                    hintCells.add(new Point(row, col));
-                }
-            }
-        }
-
-        int hintCellCount = hintCells.size();
-        int randomIndex = random.nextInt(hintCellCount);
-        Point selectedCell = hintCells.get(randomIndex);
-        int row = selectedCell.x;
-        int col = selectedCell.y;
-
-        puzzle[row][col] = solution[row][col];
-        first[row][col] = solution[row][col]; // 불러올 때, 필드를 비활성화 하기 위함
-        hintCount++;
-        updateFields();
-        fields[row][col].setBackground(new Color(220, 220, 220));
-}
-    
-    private void updateFields() {
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (puzzle[i][j] != 0) {
-                    fields[i][j].setText(String.valueOf(puzzle[i][j]));
-                    fields[i][j].setEnabled(false);
-                    fields[i][j].setDisabledTextColor(Color.BLACK);
-                } else {
-                    fields[i][j].setText(""); // 빈 칸으로 초기화
-                    fields[i][j].setEnabled(true);
-                }
-            }
-        }
-        updateCountLabels(); // 숫자 카운트 업데이트
-    }
-
-    private void updateCountLabels() {
-        int[] counts = new int[9];
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                int number = puzzle[i][j];
-                if (number != 0 && counts[number - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
-                    counts[number - 1]++;
-                }
-            }
-        }
-        for (int i = 0; i < 9; i++) {
-            if (counts[i] >= 8) countLabels[i].setForeground(Color.RED);
-            else countLabels[i].setForeground(Color.BLACK);
-            countLabels[i].setText(String.valueOf(counts[i]));
-        }
-    }
-
-     private boolean isNumberUsed(int number) {
-        // 해당 숫자가 이미 9번 사용되었는지 확인
-        int count = 0;
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
-                if (puzzle[i][j] == number) {
-                    count++;
-                }
-            }
-        }
-        return count >= 9;
-    }
-
-    private void saveGameDataFile(String fileName) {
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
-        File directory = new File(filePath);
-        if (!directory.exists()) directory.mkdirs();
-        File input = new File(filePath + fileName);
-        try (FileOutputStream outputStream = new FileOutputStream(input)) {
-            outputStream.write(totalEmptyCells);
-            outputStream.write(rowEmptyCellLimit);
-            outputStream.write(secondsPassed);
-            outputStream.write(hintCount);
-        } catch (Exception e) {
-            System.err.println("Error writing to file: " + e.getMessage());
-        }
-    }
-
-    private int[] readSaveGameData(String fileName) {
-        int[] data = new int[4];
-
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
-        File input = new File(filePath + fileName);
-        try (FileInputStream inputStream = new FileInputStream(input)) {            
-            int n;
-            for (int i = 0; i < 4; i++) {
-                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
-                    //무시함
-                }
-                data[i] = (byte)n;
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
-            return null;
-        }
-
-        return data;
-    }
-
-    private void saveSudokuToFile(String fileName, int[][] board) {
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
-        File directory = new File(filePath);
-        if (!directory.exists()) directory.mkdirs();
-        File input = new File(filePath + fileName);
-        try (FileOutputStream outputStream = new FileOutputStream(input)) {
-            for (int i = 0; i < SIZE; i++) {
-                for (int j = 0; j < SIZE; j++) {
-                    outputStream.write(board[i][j]);
-                }
-                outputStream.write(System.lineSeparator().getBytes());
-            }
-        } catch (IOException e) {
-            System.err.println("Error writing to file: " + e.getMessage());
-        }
-    }
-
-    private int[][] readSaveSudokuFile(String fileName) {
-        int board[][] =  new int[9][9];
-
-        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
-        File input = new File(filePath + fileName);
-        try (FileInputStream inputStream = new FileInputStream(input)) {            
-            int n;
-            for (int row = 0; row < 9; row ++) {
-                for (int col = 0; col < 9; col++) {
-                    while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
-                        //무시함
-                    }
-                    if (n != -1) board[row][col] = (byte)n;
-                }
-            }
-        } catch (IOException e) {
-            System.err.println("Error reading file: " + e.getMessage());
-            return null;
-        }
-        return board;
-    }
-
-    private void updateInputArray(int row, int col) {
-        String input = fields[row][col].getText();
-        if (!input.isEmpty()) {
-            userInput[row][col] = Integer.parseInt(input);
-        } else {
-            userInput[row][col] = 0; // 빈 칸인 경우 0으로 설정
-        }
-    }
-
     private void initializeSaveGame() {
         setTitle("Sudoku Game");
         setDefaultCloseOperation(JFrame.DO_NOTHING_ON_CLOSE); // 기본 종료 동작 무시
@@ -753,6 +481,7 @@ public class SudokuGame extends JFrame {
                     saveSudokuToFile("firstSudoku.sgd", first);
                     saveSudokuToFile("userInput.sgd", userInput);
                     saveSudokuToFile("autoSave.sgd", puzzle); // 게임이 종료될 때 자동으로 저장
+                    saveSudokuMemoFile("memoFile.sgd");
                     System.exit(0);
                 }
             }
@@ -804,18 +533,25 @@ public class SudokuGame extends JFrame {
         });
         helpMenu.add(aboutMenuItem);
         
-        JPanel panel = new JPanel(new GridLayout(SIZE, SIZE));
-        fields = new JTextField[SIZE][SIZE];
-        userInput = new int[SIZE][SIZE];
+        JPanel panel = new JPanel(new GridLayout(9, 9));
+        JPanel[][] memoPanel = new JPanel[9][9];
+        KeyListener[][] keyListeners = new KeyListener[9][9];
+        KeyListener[][] memoKeyListeners = new KeyListener[9][9];
+
+        fields = new JTextField[9][9];
+        userInput = new int[9][9];
+        memoFields = new JLabel[9][9][9];
+        memoVisible = new boolean[9][9][9];
         // '불러오기'에서 새로 추가된 부분 ...까지
-        puzzle = new int[SIZE][SIZE];
-        first = new int[SIZE][SIZE];
-        solution = new int[SIZE][SIZE];
+        puzzle = new int[9][9];
+        first = new int[9][9];
+        solution = new int[9][9];
 
         solution = readSaveSudokuFile("solveSudoku.sgd");
         first = readSaveSudokuFile("firstSudoku.sgd");
         userInput = readSaveSudokuFile("userInput.sgd");
         puzzle = readSaveSudokuFile("autoSave.sgd");
+        if (readSudokuMemoFile("memoFile.sgd") != null) memoVisible = readSudokuMemoFile("memoFile.sgd");
 
         int[] data = readSaveGameData("gameData.sgd");
         totalEmptyCells = data[0];
@@ -824,12 +560,29 @@ public class SudokuGame extends JFrame {
         hintCount = data[3];
         // ...
 
-        for (int i = 0; i < SIZE; i++) {
-            for (int j = 0; j < SIZE; j++) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
               final int ROW = i;
               final int COL = j;
   
               fields[i][j] = new JTextField();
+              memoPanel[i][j] = new JPanel(new GridLayout(3, 3));
+              memoPanel[i][j].setOpaque(false);
+
+              for (int k = 0; k < 9; k++) {
+                memoFields[i][j][k] = new JLabel();
+                memoFields[i][j][k].setFont(new Font("나눔", Font.PLAIN, 12));
+                memoFields[i][j][k].setForeground(Color.GRAY);
+                memoFields[i][j][k].setText(" " + Integer.toString(k + 1));
+                if (!memoVisible[i][j][k] || first[i][j] != 0) memoFields[i][j][k].setVisible(false);
+                memoPanel[i][j].add(memoFields[i][j][k]);
+              }
+
+              JPanel overlayPanel = new JPanel();
+              overlayPanel.setLayout(new OverlayLayout(overlayPanel));
+              overlayPanel.add(memoPanel[i][j]);
+              overlayPanel.add(fields[i][j]);
+
               if (first[i][j] != 0) {
                   fields[i][j].setText(String.valueOf(first[i][j])); // 초기에 표시되는 숫자 설정
                   fields[i][j].setEnabled(false);
@@ -869,42 +622,44 @@ public class SudokuGame extends JFrame {
                       // 스타일 등이 변경되었을 때, 사용하지 않음.
                   }
               });
-  
-              fields[i][j].addKeyListener(new KeyAdapter() {
-                  // 2. 공란에 BackSpace키를 입력했을 경우
-                  @Override
-                  public void keyTyped(KeyEvent e) {
-                      char c = e.getKeyChar();
-                      String input = String.valueOf(c); 
-                      if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
-                          e.consume();
-                      } else {
-                          // 9번 모두 입력했을 경우, 입력을 취소
-                          if (isNumberUsed(Integer.valueOf(input))) e.consume();
-                          else {
-                              puzzle[ROW][COL] = Integer.valueOf(input);
-                              updateCountLabels();
-                          }
-                      }
-                  }
-  
-                  // 3. 텍스트 필드에 포커스가 가 있어도, F5를 누르면 재시작
-                  @Override
-                  public void keyPressed(KeyEvent e) {
-                      if (e.getKeyCode() == KeyEvent.VK_F5) {
-                          resetGame();
-                      }
-                  }
-              });
+
+              keyListeners[i][j] = new KeyAdapter() {
+                // 2. 공란에 BackSpace키를 입력했을 경우
+                @Override
+                public void keyTyped(KeyEvent e) {
+                    char c = e.getKeyChar();
+                    String input = String.valueOf(c); 
+                    if (!(c >= '1' && c <= '9') || fields[ROW][COL].getText().length() >= 1 ) {
+                        e.consume();
+                    } else {
+                        // 9번 모두 입력했을 경우, 입력을 취소
+                        if (isNumberUsed(Integer.valueOf(input))) e.consume();
+                        else if (memoModeEnabled) e.consume(); // 메모 상태일 때는 입력하면 안 됨
+                        else {
+                            puzzle[ROW][COL] = Integer.valueOf(input);
+                            updateCountLabels();
+                        }
+                    }
+                }
+
+                // 3. 텍스트 필드에 포커스가 가 있어도, F5를 누르면 재시작
+                @Override
+                public void keyPressed(KeyEvent e) {
+                    if (e.getKeyCode() == KeyEvent.VK_F5) {
+                        resetGame();
+                    }
+                }
+              };
+              fields[i][j].addKeyListener(keyListeners[i][j]);
                   
-              panel.add(fields[i][j]);
+              panel.add(overlayPanel);
   
               // 3x3 작은 스도쿠 경계에 진한 테두리 추가
-              if ((i + 1) % SMALL_SIZE == 0 && (j + 1) % SMALL_SIZE == 0) {
+              if ((i + 1) % 3 == 0 && (j + 1) % 3 == 0) {
                   fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 3, Color.BLACK));
-              } else if ((i + 1) % SMALL_SIZE == 0) {
+              } else if ((i + 1) % 3 == 0) {
                   fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 3, 1, Color.BLACK));
-              } else if ((j + 1) % SMALL_SIZE == 0) {
+              } else if ((j + 1) % 3 == 0) {
                   fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 3, Color.BLACK));
               } else {
                   fields[i][j].setBorder(BorderFactory.createMatteBorder(1, 1, 1, 1, Color.BLACK));
@@ -960,7 +715,15 @@ public class SudokuGame extends JFrame {
         memoButton.addActionListener(new ActionListener() {
             @Override
             public void actionPerformed(ActionEvent e) {
-                // 메모 기능 구현
+                if (memoButton.getText().equals("메모")) {
+                    memoModeEnabled = true;
+                    memoButton.setText("해제");
+                }
+                else {
+                    memoModeEnabled = false;
+                    memoButton.setText("메모");
+                }
+                updateMemoField(keyListeners, memoKeyListeners);
             }
         });
 
@@ -974,6 +737,7 @@ public class SudokuGame extends JFrame {
                     saveSudokuToFile("firstSudoku.sgd", first);
                     saveSudokuToFile("userInput.sgd", userInput);
                     saveSudokuToFile("autoSave.sgd", puzzle);
+                    saveSudokuMemoFile("memoFile.sgd");
                     System.exit(0);
                 }
             }
@@ -1024,6 +788,366 @@ public class SudokuGame extends JFrame {
         updateCountLabels();
         setLocationRelativeTo(null);
         setVisible(true);
+    }
+
+    private void applyHint() {
+        Random random = new Random();
+        ArrayList<Point> hintCells = new ArrayList<>(); // Point: GridLayout에서 셀의 인덱스에 대한 정보를 가짐
+
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                if (puzzle[row][col] == 0 || userInput[row][col] != solution[row][col]) {
+                    hintCells.add(new Point(row, col));
+                }
+            }
+        }
+
+        int hintCellCount = hintCells.size();
+        int randomIndex = random.nextInt(hintCellCount);
+        Point selectedCell = hintCells.get(randomIndex);
+        int row = selectedCell.x;
+        int col = selectedCell.y;
+
+        puzzle[row][col] = solution[row][col];
+        first[row][col] = solution[row][col]; // 불러올 때, 필드를 비활성화 하기 위함
+        hintCount++;
+        updateFields();
+        fields[row][col].setBackground(new Color(220, 220, 220));
+    }
+
+    private void generateSudoku() {
+        solution = new int[9][9];
+        solveSudoku(solution);
+    
+        puzzle = new int[9][9];
+        first = new int[9][9];
+        Random random = new Random();
+ 
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                first[i][j] = solution[i][j];
+                puzzle[i][j] = solution[i][j];
+            }
+        }
+    
+        // count : 빈 셀의 개수
+        int count = 0;
+        int[] rowEmpty = new int[9];
+        while (count < totalEmptyCells) {
+            int row = random.nextInt(9);
+            int col = random.nextInt(9);
+            if (puzzle[row][col] != 0 && rowEmpty[row] < rowEmptyCellLimit) {
+                first[row][col] = 0;
+                puzzle[row][col] = 0; // 빈 셀로 변경
+                count++;
+                rowEmpty[row]++;
+            }
+        }
+        saveSudokuToFile("inputSudoku.sgd", puzzle); // 더미 저장 데이터
+        saveSudokuToFile("solveSudoku.sgd", solution); // 게임을 새로 생성할 때만 생성
+    }
+
+    private boolean isNumberUsed(int number) {
+        // 해당 숫자가 이미 9번 사용되었는지 확인
+        int count = 0;
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (puzzle[i][j] == number) {
+                    count++;
+                }
+            }
+        }
+        return count >= 9;
+    }
+
+    private boolean isValid(int[][] board, int row, int col, int num) {
+        // 행과 열 검사
+        for (int i = 0; i < 9; i++) {
+            if (board[row][i] == num || board[i][col] == num) {
+                return false;
+            }
+        }
+        // 작은 3x3 그룹 검사
+        int startRow = row - row % 3;
+        int startCol = col - col % 3;
+        for (int i = startRow; i < startRow + 3; i++) {
+            for (int j = startCol; j < startCol + 3; j++) {
+                if (board[i][j] == num) {
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private boolean solveSudoku(int[][] board) {
+        Random random = new Random();
+        for (int row = 0; row < 9; row++) {
+            for (int col = 0; col < 9; col++) {
+                // numbers를 랜덤으로 섞어 백트래킹
+                if (board[row][col] == 0) {
+                    int[] numbers = {1, 2, 3, 4, 5, 6, 7, 8, 9};
+                    shuffleArray(numbers, random);
+                    for (int num : numbers) {
+                        if (isValid(board, row, col, num)) {
+                            board[row][col] = num;
+                            if (solveSudoku(board)) {
+                                return true;
+                            }
+                            board[row][col] = 0;
+                        }
+                    }
+                    return false;
+                }
+            }
+        }
+        return true;
+    }
+
+    private int[] readSaveGameData(String fileName) {
+        int[] data = new int[4];
+
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File input = new File(filePath + fileName);
+        try (FileInputStream inputStream = new FileInputStream(input)) {            
+            int n;
+            for (int i = 0; i < 4; i++) {
+                while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                    //무시함
+                }
+                data[i] = (byte)n;
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return null;
+        }
+        return data;
+    }
+
+    private int[][] readSaveSudokuFile(String fileName) {
+        int board[][] =  new int[9][9];
+
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File input = new File(filePath + fileName);
+        try (FileInputStream inputStream = new FileInputStream(input)) {            
+            int n;
+            for (int row = 0; row < 9; row ++) {
+                for (int col = 0; col < 9; col++) {
+                    while ((n = inputStream.read()) != -1 && (n == '\n' || n == '\r')) {
+                        //무시함
+                    }
+                    if (n != -1) board[row][col] = (byte)n;
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error reading file: " + e.getMessage());
+            return null;
+        }
+        return board;
+    }
+
+    private boolean[][][] readSudokuMemoFile(String fileName) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File inputFile = new File(filePath + fileName);
+        memoVisible = new boolean[9][9][9];
+
+        try (FileInputStream inputStream = new FileInputStream(inputFile);
+            DataInputStream dataInputStream = new DataInputStream(inputStream)) {
+
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    for (int k = 0; k < 9; k++) {
+                        memoVisible[i][j][k] = dataInputStream.readBoolean();
+                    }
+                }
+            }
+        } catch (IOException e) {
+            return null;
+        }
+        return memoVisible;
+    }
+
+
+    private void resetGame() {
+        generateSudoku();
+        updateFields();
+        secondsPassed = 0;
+        hintCount = 0;
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                fields[i][j].setBackground(Color.WHITE); // 배경색을 모두 흰색으로 초기화
+                if (puzzle[i][j] != 0) fields[i][j].setBackground(new Color(220, 220, 220)); // 그 중 비어있지 않은 부분은 다시 회색으로 색칠
+                for (int k = 0; k < 9; k++) {
+                    memoFields[i][j][k].setVisible(false);
+                    memoVisible[i][j][k] = false;
+                }
+            }
+        }
+        repaint();
+    }
+
+    private void saveGameDataFile(String fileName) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + fileName);
+        try (FileOutputStream outputStream = new FileOutputStream(input)) {
+            outputStream.write(totalEmptyCells);
+            outputStream.write(rowEmptyCellLimit);
+            outputStream.write(secondsPassed);
+            outputStream.write(hintCount);
+        } catch (Exception e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    private void saveSudokuToFile(String fileName, int[][] board) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + fileName);
+        try (FileOutputStream outputStream = new FileOutputStream(input)) {
+            for (int i = 0; i < 9; i++) {
+                for (int j = 0; j < 9; j++) {
+                    outputStream.write(board[i][j]);
+                }
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    private void saveSudokuMemoFile(String fileName) {
+        String filePath = System.getProperty("user.home") + "/Documents/SaveSudoku/";
+        File directory = new File(filePath);
+        if (!directory.exists()) directory.mkdirs();
+        File input = new File(filePath + fileName);
+        try (FileOutputStream outputStream = new FileOutputStream(input);
+             DataOutputStream dataOutputStream = new DataOutputStream(outputStream)) {
+            for (int i = 0; i < 9; i ++) {
+                for (int j = 0; j < 9; j++) {
+                    for (int k = 0; k < 9; k++) {
+                        dataOutputStream.writeBoolean(memoVisible[i][j][k]);
+                    }
+                }
+                outputStream.write(System.lineSeparator().getBytes());
+            }
+        } catch (IOException e) {
+            System.err.println("Error writing to file: " + e.getMessage());
+        }
+    }
+
+    // 배열을 무작위로 섞는 메소드
+    private void shuffleArray(int[] array, Random random) {
+        for (int i = array.length - 1; i > 0; i--) {
+            int index = random.nextInt(i + 1);
+            int temp = array[index];
+            array[index] = array[i];
+            array[i] = temp;
+        }
+    }
+
+    private void updateCountLabels() {
+        int[] counts = new int[9];
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                int number = puzzle[i][j];
+                if (number != 0 && counts[number - 1] < 9) { //각 숫자는 9개를 초과할 수 없음
+                    counts[number - 1]++;
+                }
+            }
+        }
+        for (int i = 0; i < 9; i++) {
+            if (counts[i] >= 8) countLabels[i].setForeground(Color.RED);
+            else countLabels[i].setForeground(Color.BLACK);
+            countLabels[i].setText(String.valueOf(counts[i]));
+        }
+    }
+
+    private void updateFields() {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                if (puzzle[i][j] != 0) {
+                    fields[i][j].setText(String.valueOf(puzzle[i][j]));
+                    fields[i][j].setEnabled(false);
+                    fields[i][j].setDisabledTextColor(Color.BLACK);
+                } else {
+                    fields[i][j].setText(""); // 빈 칸으로 초기화
+                    fields[i][j].setEnabled(true);
+                }
+            }
+        }
+        updateCountLabels(); // 숫자 카운트 업데이트
+    }
+
+    private void updateMemoField(KeyListener[][] keyListners, KeyListener[][] memoKeyListeners) {
+        for (int i = 0; i < 9; i++) {
+            for (int j = 0; j < 9; j++) {
+                fields[i][j].setEditable(false);
+                if (first[i][j] == 0) fields[i][j].setBackground(Color.WHITE);
+                final int ROW = i;
+                final int COL = j;
+                if (memoModeEnabled) {
+                    // 메모 모드가 활성화되었을 때 키 리스너 설정
+                    KeyAdapter memoKeyListener = new KeyAdapter() {
+                        @Override
+                        public void keyTyped(KeyEvent e) {
+                            char c = e.getKeyChar();
+                            if (Character.isDigit(c)) {
+                                int depth = Integer.valueOf(Character.toString(c)) - 1;
+                                if (depth == -1) return; // 0을 입력했을 경우
+                                JLabel memoField = memoFields[ROW][COL][depth];
+                                if ((c >= '1' && c <= '9') && fields[ROW][COL].getText().equals("")) {
+                                    if (memoField.isVisible()) {
+                                        memoField.setVisible(false);
+                                        memoVisible[ROW][COL][depth] = false;
+                                    }
+                                    else {
+                                        memoField.setVisible(true);
+                                        memoVisible[ROW][COL][depth] = true;
+                                    }
+                                }
+                            }
+                        }
+                    };
+                if (memoKeyListeners[i][j] != null) fields[i][j].removeKeyListener(memoKeyListeners[i][j]); 
+                fields[i][j].addKeyListener(memoKeyListener);
+                memoKeyListeners[i][j] = memoKeyListener;
+
+                for (int k = 0; k < 9; k++) {
+                    if (memoVisible[i][j][k]) {
+                        if (!fields[i][j].getText().equals("")) {
+                            memoFields[i][j][k].setVisible(false);
+                        } else memoFields[i][j][k].setVisible(true);
+                    }
+                }
+                repaint();
+                } else {
+                    if (memoKeyListeners[i][j] != null) {
+                        fields[i][j].removeKeyListener(memoKeyListeners[i][j]);
+                        memoKeyListeners[i][j] = null;
+                    }
+                    fields[i][j].setEditable(true);
+                    repaint();
+                }
+            }
+        }
+    }
+
+    private void updateInputArray(int row, int col) {
+        String input = fields[row][col].getText();
+        if (!input.isEmpty()) {
+            userInput[row][col] = Integer.parseInt(input);
+        } else {
+            userInput[row][col] = 0; // 빈 칸인 경우 0으로 설정
+        }
+    }
+
+    private void updateTimeLabel() {
+        int minutes = secondsPassed / 60;
+        int seconds = secondsPassed % 60;
+        String timeString = String.format("%02d:%02d", minutes, seconds);
+        timeLabel.setText(timeString);
     }
 
     public static void main(String[] args) {
