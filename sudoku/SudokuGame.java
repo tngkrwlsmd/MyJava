@@ -400,7 +400,7 @@ public class SudokuGame extends JFrame {
                     memoModeEnabled = false;
                     memoButton.setText("메모");
                 }
-                updateMemoField(keyListeners, memoKeyListeners);
+                updateMemoField(memoKeyListeners);
             }
         });
 
@@ -752,7 +752,7 @@ public class SudokuGame extends JFrame {
                     memoModeEnabled = false;
                     memoButton.setText("메모");
                 }
-                updateMemoField(keyListeners, memoKeyListeners);
+                updateMemoField(memoKeyListeners);
             }
         });
 
@@ -1159,7 +1159,7 @@ public class SudokuGame extends JFrame {
         updateCountLabels(); // 숫자 카운트 업데이트
     }
 
-    private void updateMemoField(KeyListener[][] keyListners, KeyListener[][] memoKeyListeners) {
+    private void updateMemoField(KeyListener[][] memoKeyListeners) {
         for (int i = 0; i < 9; i++) {
             for (int j = 0; j < 9; j++) {
                 fields[i][j].setEditable(false);
@@ -1168,30 +1168,31 @@ public class SudokuGame extends JFrame {
                 final int COL = j;
                 if (memoModeEnabled) {
                     // 메모 모드가 활성화되었을 때 키 리스너 설정
-                    KeyAdapter memoKeyListener = new KeyAdapter() {
-                        @Override
-                        public void keyTyped(KeyEvent e) {
-                            char c = e.getKeyChar();
-                            if (Character.isDigit(c)) {
-                                int depth = Integer.valueOf(Character.toString(c)) - 1;
-                                if (depth == -1) return; // 0을 입력했을 경우
-                                JLabel memoField = memoFields[ROW][COL][depth];
-                                if ((c >= '1' && c <= '9') && fields[ROW][COL].getText().equals("")) {
-                                    if (memoField.isVisible()) {
-                                        memoField.setVisible(false);
-                                        memoVisible[ROW][COL][depth] = false;
-                                    }
-                                    else {
-                                        memoField.setVisible(true);
-                                        memoVisible[ROW][COL][depth] = true;
+                    if (memoKeyListeners[i][j] == null) {
+                        KeyAdapter memoKeyListener = new KeyAdapter() {
+                            @Override
+                            public void keyTyped(KeyEvent e) {
+                                char c = e.getKeyChar();
+                                if (Character.isDigit(c)) {
+                                    int depth = Integer.valueOf(Character.toString(c)) - 1;
+                                    if (depth == -1) return; // 0을 입력했을 경우
+                                    JLabel memoField = memoFields[ROW][COL][depth];
+                                    if ((c >= '1' && c <= '9') && fields[ROW][COL].getText().equals("")) {
+                                        if (memoField.isVisible()) {
+                                            memoField.setVisible(false);
+                                            memoVisible[ROW][COL][depth] = false;
+                                        }
+                                        else {
+                                            memoField.setVisible(true);
+                                            memoVisible[ROW][COL][depth] = true;
+                                        }
                                     }
                                 }
                             }
-                        }
-                    };
-                if (memoKeyListeners[i][j] != null) fields[i][j].removeKeyListener(memoKeyListeners[i][j]); 
-                fields[i][j].addKeyListener(memoKeyListener);
-                memoKeyListeners[i][j] = memoKeyListener;
+                        };
+                        memoKeyListeners[i][j] = memoKeyListener;
+                    }
+                fields[i][j].addKeyListener(memoKeyListeners[i][j]);
 
                 for (int k = 0; k < 9; k++) {
                     if (memoVisible[i][j][k]) {
@@ -1202,10 +1203,7 @@ public class SudokuGame extends JFrame {
                 }
                 repaint();
                 } else {
-                    if (memoKeyListeners[i][j] != null) {
-                        fields[i][j].removeKeyListener(memoKeyListeners[i][j]);
-                        memoKeyListeners[i][j] = null;
-                    }
+                    fields[i][j].removeKeyListener(memoKeyListeners[i][j]);
                     fields[i][j].setEditable(true);
                     repaint();
                 }
