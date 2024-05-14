@@ -6,6 +6,20 @@
   "configurations": [
     {
       "type": "java",
+      "name": "ClientEx",
+      "request": "launch",
+      "mainClass": "java15.ClientEx",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
+      "name": "ServerEx",
+      "request": "launch",
+      "mainClass": "java15.ServerEx",
+      "projectName": "java_3e0290da"
+    },
+    {
+      "type": "java",
       "name": "JDBC_EX2",
       "request": "launch",
       "mainClass": "java16.JDBC_EX2",
