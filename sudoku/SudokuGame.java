@@ -1109,7 +1109,6 @@ public class SudokuGame extends JFrame {
                         dataOutputStream.writeBoolean(memoVisible[i][j][k]);
                     }
                 }
-                outputStream.write(System.lineSeparator().getBytes());
             }
         } catch (IOException e) {
             System.err.println("Error writing to file: " + e.getMessage());
